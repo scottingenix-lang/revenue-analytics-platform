@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { LogOut, ChevronDown } from 'lucide-react'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/executive-cockpit': 'Executive Cockpit',
+  '/executive-overview': 'Executive Overview',
   '/attribution': 'Attribution',
   '/pipeline': 'Pipeline & Sales Velocity',
   '/retention': 'Retention & Expansion',

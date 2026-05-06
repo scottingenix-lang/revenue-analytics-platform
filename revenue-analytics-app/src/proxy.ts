@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const PROTECTED_PATHS = [
-  '/executive-cockpit',
+  '/executive-overview',
   '/attribution',
   '/pipeline',
   '/retention',
@@ -48,7 +48,7 @@ export async function proxy(request: NextRequest) {
 
   if (isLoginPage && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/executive-cockpit'
+    url.pathname = '/executive-overview'
     return NextResponse.redirect(url)
   }
 

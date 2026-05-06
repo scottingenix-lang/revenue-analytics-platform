@@ -23,7 +23,7 @@ export default function LoginPage() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/executive-cockpit')
+      router.push('/executive-overview')
       router.refresh()
     }
   }

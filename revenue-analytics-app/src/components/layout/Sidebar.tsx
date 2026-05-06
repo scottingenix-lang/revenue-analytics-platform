@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { label: 'Executive Cockpit', href: '/executive-cockpit', icon: LayoutDashboard },
+  { label: 'Executive Overview', href: '/executive-overview', icon: LayoutDashboard },
   { label: 'Attribution', href: '/attribution', icon: GitBranch },
   { label: 'Pipeline & Sales Velocity', href: '/pipeline', icon: TrendingUp },
   { label: 'Retention & Expansion', href: '/retention', icon: Users },
