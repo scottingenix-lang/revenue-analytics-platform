@@ -140,12 +140,12 @@ def generate_users() -> list[dict]:
     users = []
 
     roles = [
-        ("SDR",             5, "Mid-Market"),
-        ("SDR",             3, "Enterprise"),
-        ("SDR",             4, "SMB"),
-        ("AE",              6, "Mid-Market"),
-        ("AE",              4, "Enterprise"),
-        ("AE",              3, "SMB"),
+        ("SDR",             2, "Mid-Market"),
+        ("SDR",             1, "Enterprise"),
+        ("SDR",             1, "SMB"),
+        ("AE",              3, "Mid-Market"),
+        ("AE",              2, "Enterprise"),
+        ("AE",              2, "SMB"),
         ("Account Manager", 4, None),
         ("Sales Manager",   2, None),
         ("VP Sales",        1, None),

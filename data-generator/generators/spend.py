@@ -23,8 +23,8 @@ SPEND_RANGES = {
     ("ABM",               "ABM"):              (8_000,  25_000),
     ("Partner",           "Partner"):          (3_000,  12_000),
     ("Field Marketing",   "Field Event"):      (5_000,  20_000),
-    ("Sales Headcount",   None):               (80_000, 150_000),
-    ("SDR Headcount",     None):               (40_000, 90_000),
+    ("Sales Headcount",   None):               (85_000, 110_000),
+    ("SDR Headcount",     None):               (22_000, 32_000),
     ("Tools & Technology",None):               (12_000, 25_000),
     ("Other",             None):               (5_000,  15_000),
 }
