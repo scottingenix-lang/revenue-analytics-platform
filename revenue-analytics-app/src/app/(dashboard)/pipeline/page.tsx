@@ -70,15 +70,24 @@ export default function PipelinePage() {
   const [vertical,  setVertical]  = useState('')
   const [dealStage, setDealStage] = useState<'all' | 'open' | 'won'>('all')
 
+  type SortField = 'attainment_pct' | 'closed_won_count' | 'avg_deal_arr' | 'win_rate_pct' | 'avg_age_days'
+  const [sortBy,      setSortBy]      = useState<SortField>('attainment_pct')
+  const [lbSegment,   setLbSegment]   = useState('')
+  const [lbVertical,  setLbVertical]  = useState('')
+
   const { data: pipelineData, isLoading: loadingPipeline } = useQuery<PipelineData>({
     queryKey: ['pipeline-kpis'],
     queryFn: () => fetch('/api/pipeline/kpis').then((r) => r.json()),
     staleTime: 5 * 60 * 1000,
   })
 
+  const repsParams = new URLSearchParams()
+  if (lbSegment)  repsParams.set('segment',  lbSegment)
+  if (lbVertical) repsParams.set('vertical', lbVertical)
+
   const { data: repsData, isLoading: loadingReps } = useQuery<RepLeaderboardRow[]>({
-    queryKey: ['pipeline-reps'],
-    queryFn: () => fetch('/api/pipeline/reps').then((r) => r.json()),
+    queryKey: ['pipeline-reps', lbSegment, lbVertical],
+    queryFn: () => fetch(`/api/pipeline/reps?${repsParams}`).then((r) => r.json()),
     staleTime: 5 * 60 * 1000,
   })
 
@@ -182,8 +191,38 @@ export default function PipelinePage() {
 
       {/* Rep leaderboard */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
+        <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
           <h3 className="text-sm font-semibold text-slate-700">Rep Leaderboard — QTD Attainment</h3>
+          <div className="flex flex-wrap gap-4">
+            <FilterSelect
+              label="Size"
+              value={lbSegment}
+              onChange={setLbSegment}
+              options={segmentOptions}
+              allLabel="All Sizes"
+            />
+            <FilterSelect
+              label="Industry"
+              value={lbVertical}
+              onChange={setLbVertical}
+              options={verticalOptions}
+              allLabel="All Industries"
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide shrink-0">Sort by</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortField)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              >
+                <option value="attainment_pct">Attainment</option>
+                <option value="closed_won_count">Deals Won</option>
+                <option value="avg_age_days">Avg Age</option>
+                <option value="avg_deal_arr">Avg Deal</option>
+                <option value="win_rate_pct">Win Rate</option>
+              </select>
+            </div>
+          </div>
         </div>
         {loadingReps ? (
           <div className="p-5 space-y-2">
@@ -199,12 +238,13 @@ export default function PipelinePage() {
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Quota (Q)</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Attainment</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Deals Won</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg Age</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg Deal</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
               </tr>
             </thead>
             <tbody>
-              {(repsData ?? []).map((rep, i) => (
+              {[...(repsData ?? [])].sort((a, b) => b[sortBy] - a[sortBy]).map((rep, i) => (
                 <tr key={rep.owner_id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -219,6 +259,7 @@ export default function PipelinePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right text-slate-600">{rep.closed_won_count}</td>
+                  <td className="px-4 py-3 text-right text-slate-600 tabular-nums">{fmtDays(rep.avg_age_days)}</td>
                   <td className="px-4 py-3 text-right text-slate-600 tabular-nums">{fmtUSD(rep.avg_deal_arr)}</td>
                   <td className="px-4 py-3 text-right text-slate-600 tabular-nums">{fmtPct(rep.win_rate_pct)}</td>
                 </tr>

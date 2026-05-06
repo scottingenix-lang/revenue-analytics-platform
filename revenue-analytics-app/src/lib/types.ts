@@ -98,6 +98,7 @@ export type RepLeaderboardRow = {
   attainment_pct: number
   avg_deal_arr: number
   win_rate_pct: number
+  avg_age_days: number
 }
 
 // ── Retention ─────────────────────────────────────────────────

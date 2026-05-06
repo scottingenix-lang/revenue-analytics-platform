@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
     if (verticalFilter) q = q.eq('sls_opportunities.vertical', verticalFilter)
 
     // Deal stage filter
-    if (dealStage === 'open') q = q.not('sls_opportunities.stage', 'in', '("6","Closed Lost")')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (dealStage === 'open') q = (q as any).not('sls_opportunities.stage', 'in', '("6","Closed Lost")')
     if (dealStage === 'won')  q = q.eq('sls_opportunities.stage', '6')
 
     const { data } = await q
