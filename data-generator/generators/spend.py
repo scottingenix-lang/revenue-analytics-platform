@@ -14,19 +14,20 @@ from dateutil.relativedelta import relativedelta
 from .constants import RANDOM_SEED
 
 # Monthly spend ranges per category
+# Non-headcount scaled to ~$1.6M T12 total; Paid Search further cut to 25% of that share.
 SPEND_RANGES = {
-    ("Paid Search",       "PPC"):              (18_000, 35_000),
-    ("Social Ads",        "Social Ad"):        (8_000,  18_000),
-    ("Events",            "Trade Show"):       (15_000, 80_000),
-    ("Events",            "Field Event"):      (10_000, 40_000),
-    ("Content",           "Website"):          (5_000,  15_000),
-    ("ABM",               "ABM"):              (8_000,  25_000),
-    ("Partner",           "Partner"):          (3_000,  12_000),
-    ("Field Marketing",   "Field Event"):      (5_000,  20_000),
+    ("Paid Search",       "PPC"):              (2_300,   4_500),
+    ("Social Ads",        "Social Ad"):        (4_000,   9_000),
+    ("Events",            "Trade Show"):       (8_000,  41_000),
+    ("Events",            "Field Event"):      (5_000,  21_000),
+    ("Content",           "Website"):          (2_500,   8_000),
+    ("ABM",               "ABM"):              (4_000,  13_000),
+    ("Partner",           "Partner"):          (1_500,   6_000),
+    ("Field Marketing",   "Field Event"):      (2_500,  10_000),
     ("Sales Headcount",   None):               (85_000, 110_000),
-    ("SDR Headcount",     None):               (22_000, 32_000),
-    ("Tools & Technology",None):               (12_000, 25_000),
-    ("Other",             None):               (5_000,  15_000),
+    ("SDR Headcount",     None):               (22_000,  32_000),
+    ("Tools & Technology",None):               (6_000,  13_000),
+    ("Other",             None):               (2_500,   8_000),
 }
 
 
