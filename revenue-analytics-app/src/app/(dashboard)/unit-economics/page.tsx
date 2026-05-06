@@ -93,7 +93,7 @@ export default function UnitEconomicsPage() {
             <KpiTile label="LTV / CAC" value={fmtMultiple(k.ltv_cac)} sub="Target: >3x" accent={k.ltv_cac >= 3} />
             <KpiTile label="Gross Margin" value={fmtPct(k.gross_margin_pct)} sub="Last 3 months avg" color={k.gross_margin_pct >= 70 ? 'text-emerald-600' : 'text-amber-600'} />
             <KpiTile label="ARR Growth" value={fmtPct(k.arr_growth_pct)} sub="Year over year" color="text-indigo-600" />
-            <KpiTile label="Magic Number" value={k.magic_number.toFixed(2)} sub="Net new ARR / prior-Q spend" color={k.magic_number >= 0.75 ? 'text-emerald-600' : 'text-amber-600'} />
+            <KpiTile label="Magic Number" value={k.magic_number.toFixed(2)} sub="Net new ARR / T12 spend" color={k.magic_number >= 0.75 ? 'text-emerald-600' : 'text-amber-600'} />
           </>
         ) : null}
       </div>

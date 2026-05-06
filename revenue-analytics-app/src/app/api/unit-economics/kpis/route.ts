@@ -14,7 +14,7 @@ export async function GET() {
 
   const trailing12 = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-  const [arrData, movementsData, gmData, spendData, spendPriorData, cacSourceData, priorArrData] =
+  const [arrData, movementsData, gmData, spendData, cacSourceData, priorArrData] =
     await Promise.all([
       supabase.from('sub_subscriptions').select('arr').eq('status', 'active'),
 
@@ -34,12 +34,6 @@ export async function GET() {
         .from('fin_spend_monthly')
         .select('amount')
         .gte('fiscal_month', trailing12),
-
-      supabase
-        .from('fin_spend_monthly')
-        .select('amount')
-        .gte('fiscal_month', quarterStart(-2))
-        .lt('fiscal_month', quarterStart(-1)),
 
       supabase
         .from('mv_cac_by_source_quarterly')
@@ -72,7 +66,6 @@ export async function GET() {
     : 0
 
   const sm_spend_current = (spendData.data ?? []).reduce((s, r) => s + Number(r.amount), 0)
-  const sm_spend_prior = (spendPriorData.data ?? []).reduce((s, r) => s + Number(r.amount), 0)
 
   // New logos — trailing 12 months (same window as spend, avoids end-of-history edge effect)
   const { data: newLogoPrior } = await supabase
@@ -90,14 +83,9 @@ export async function GET() {
     ? blended_cac / ((avg_arr / 12) * gm_dec)
     : 0
 
-  // Magic number
-  const { data: netNewData } = await supabase
-    .from('sub_arr_movements')
-    .select('arr_delta')
-    .gte('effective_date', quarterStart(-1))
-    .lt('effective_date', quarterStart(0))
-  const net_new_arr = (netNewData ?? []).reduce((s, r) => s + Number(r.arr_delta), 0)
-  const magic_number = sm_spend_prior > 0 ? (net_new_arr * 4) / sm_spend_prior : 0
+  // Magic number — T12 net new ARR / T12 S&M spend (both already annualised, no ×4 needed)
+  const net_new_arr = mvs.reduce((s, m) => s + Number(m.arr_delta), 0)
+  const magic_number = sm_spend_current > 0 ? net_new_arr / sm_spend_current : 0
 
   const rule_of_40 = arr_growth_pct + gross_margin_pct
 
