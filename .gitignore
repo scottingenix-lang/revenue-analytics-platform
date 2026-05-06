@@ -1,0 +1,32 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+secrets/
+
+# Supabase local dev
+.branches/
+.temp/
+
+# Data generator output (generated CSVs — not committed)
+data-generator/output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Node (for Phase 2+)
+node_modules/
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
