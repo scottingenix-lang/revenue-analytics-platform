@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from('mv_cohort_retention_monthly')
-    .select('cohort_month, company_size, fiscal_month, arr_at_start, arr_retained, grr')
+    .select('cohort_month, company_size, vertical, fiscal_month, arr_at_start, arr_retained, grr')
     .gte('cohort_month', cutoffStr)
     .order('cohort_month', { ascending: true })
     .order('fiscal_month', { ascending: true })
@@ -26,6 +26,7 @@ export async function GET() {
     return {
       cohort_month: r.cohort_month,
       company_size: r.company_size ?? 'Unknown',
+      vertical: r.vertical ?? 'Unknown',
       fiscal_month: r.fiscal_month,
       arr_at_start: Number(r.arr_at_start ?? 0),
       arr_retained: Number(r.arr_retained ?? 0),
@@ -34,5 +35,7 @@ export async function GET() {
     }
   })
 
-  return NextResponse.json(rows)
+  const verticals = [...new Set(rows.map((r) => r.vertical).filter(Boolean))].sort()
+
+  return NextResponse.json({ rows, options: { verticals } })
 }

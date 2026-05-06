@@ -115,6 +115,7 @@ export type RetentionKpis = {
 export type CohortRetentionRow = {
   cohort_month: string
   company_size: string
+  vertical: string
   fiscal_month: string
   arr_at_start: number
   arr_retained: number

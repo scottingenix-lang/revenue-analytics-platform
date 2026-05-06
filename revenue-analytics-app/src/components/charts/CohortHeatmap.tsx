@@ -12,12 +12,16 @@ function grrColor(grr: number): string {
 
 export default function CohortHeatmap({
   data,
-  sizeFilter = 'All',
+  sizeFilter = '',
+  verticalFilter = '',
 }: {
   data: CohortRetentionRow[]
   sizeFilter?: string
+  verticalFilter?: string
 }) {
-  const filtered = sizeFilter === 'All' ? data : data.filter((r) => r.company_size === sizeFilter)
+  const filtered = data
+    .filter((r) => !sizeFilter     || r.company_size === sizeFilter)
+    .filter((r) => !verticalFilter || r.vertical     === verticalFilter)
 
   // Pivot: cohort_month → offset → grr
   const cohorts = [...new Set(filtered.map((r) => r.cohort_month))].sort()

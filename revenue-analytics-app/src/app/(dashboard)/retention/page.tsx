@@ -6,7 +6,10 @@ import CohortHeatmap from '@/components/charts/CohortHeatmap'
 import { fmtUSD, fmtPct } from '@/lib/format'
 import type { RetentionKpis, CohortRetentionRow } from '@/lib/types'
 
-const SIZE_FILTERS = ['All', 'SMB', 'Mid-Market', 'Enterprise']
+type CohortsResponse = {
+  rows: CohortRetentionRow[]
+  options: { verticals: string[] }
+}
 
 function KpiTile({ label, value, sub, color = 'text-slate-900' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
@@ -18,8 +21,45 @@ function KpiTile({ label, value, sub, color = 'text-slate-900' }: { label: strin
   )
 }
 
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  allLabel,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+  allLabel: string
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide shrink-0">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+      >
+        <option value="">{allLabel}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+const SIZE_OPTIONS = [
+  { value: 'SMB',         label: 'SMB' },
+  { value: 'Mid-Market',  label: 'Mid-Market' },
+  { value: 'Enterprise',  label: 'Enterprise' },
+]
+
 export default function RetentionPage() {
-  const [sizeFilter, setSizeFilter] = useState('All')
+  const [sizeFilter,     setSizeFilter]     = useState('')
+  const [verticalFilter, setVerticalFilter] = useState('')
 
   const { data: kpisData, isLoading: loadingKpis } = useQuery<RetentionKpis>({
     queryKey: ['retention-kpis'],
@@ -27,12 +67,13 @@ export default function RetentionPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const { data: cohortsData, isLoading: loadingCohorts } = useQuery<CohortRetentionRow[]>({
+  const { data: cohortsData, isLoading: loadingCohorts } = useQuery<CohortsResponse>({
     queryKey: ['retention-cohorts'],
     queryFn: () => fetch('/api/retention/cohorts').then((r) => r.json()),
     staleTime: 5 * 60 * 1000,
   })
 
+  const verticalOptions = (cohortsData?.options.verticals ?? []).map((v) => ({ value: v, label: v }))
   const k = kpisData
 
   return (
@@ -59,26 +100,31 @@ export default function RetentionPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h3 className="text-sm font-semibold text-slate-700">GRR Cohort Heatmap</h3>
-          <div className="flex gap-1.5">
-            {SIZE_FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setSizeFilter(f)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  sizeFilter === f
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-4">
+            <FilterSelect
+              label="Size"
+              value={sizeFilter}
+              onChange={setSizeFilter}
+              options={SIZE_OPTIONS}
+              allLabel="All Sizes"
+            />
+            <FilterSelect
+              label="Industry"
+              value={verticalFilter}
+              onChange={setVerticalFilter}
+              options={verticalOptions}
+              allLabel="All Industries"
+            />
           </div>
         </div>
         {loadingCohorts ? (
           <div className="h-64 animate-pulse bg-gray-100 rounded" />
         ) : (
-          <CohortHeatmap data={cohortsData ?? []} sizeFilter={sizeFilter} />
+          <CohortHeatmap
+            data={cohortsData?.rows ?? []}
+            sizeFilter={sizeFilter}
+            verticalFilter={verticalFilter}
+          />
         )}
       </div>
 
@@ -88,10 +134,10 @@ export default function RetentionPage() {
         {k && (
           <div className="space-y-3">
             {[
-              { label: 'New Business', value: k.net_new_arr, color: 'bg-indigo-500' },
-              { label: 'Expansion', value: k.expansion_arr, color: 'bg-emerald-500' },
-              { label: 'Contraction', value: -k.contraction_arr, color: 'bg-amber-400' },
-              { label: 'Churn', value: -k.churn_arr, color: 'bg-red-500' },
+              { label: 'New Business', value: k.net_new_arr,        color: 'bg-indigo-500' },
+              { label: 'Expansion',    value: k.expansion_arr,      color: 'bg-emerald-500' },
+              { label: 'Contraction',  value: -k.contraction_arr,   color: 'bg-amber-400' },
+              { label: 'Churn',        value: -k.churn_arr,         color: 'bg-red-500' },
             ].map(({ label, value, color }) => {
               const maxVal = k.net_new_arr + k.expansion_arr
               const pct = maxVal > 0 ? Math.abs(value / maxVal) * 100 : 0
