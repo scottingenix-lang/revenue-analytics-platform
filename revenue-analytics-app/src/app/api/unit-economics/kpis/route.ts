@@ -33,8 +33,7 @@ export async function GET() {
       supabase
         .from('fin_spend_monthly')
         .select('amount')
-        .gte('fiscal_month', quarterStart(-1))
-        .lt('fiscal_month', quarterStart(0)),
+        .gte('fiscal_month', trailing12),
 
       supabase
         .from('fin_spend_monthly')
@@ -75,12 +74,11 @@ export async function GET() {
   const sm_spend_current = (spendData.data ?? []).reduce((s, r) => s + Number(r.amount), 0)
   const sm_spend_prior = (spendPriorData.data ?? []).reduce((s, r) => s + Number(r.amount), 0)
 
-  // New logos in prior quarter
+  // New logos — trailing 12 months (same window as spend, avoids end-of-history edge effect)
   const { data: newLogoPrior } = await supabase
     .from('sub_subscriptions')
     .select('company_id')
-    .gte('start_date', quarterStart(-1))
-    .lt('start_date', quarterStart(0))
+    .gte('start_date', trailing12)
   const new_customer_count = new Set((newLogoPrior ?? []).map((s) => s.company_id)).size
   const blended_cac = new_customer_count > 0 ? sm_spend_current / new_customer_count : 0
 

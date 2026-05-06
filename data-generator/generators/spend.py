@@ -65,9 +65,11 @@ def generate_spend() -> tuple[list[dict], list[dict]]:
                 continue
             seen_categories.add(key)
 
-            # Events spike in spring/fall
+            # Events spike in spring/fall; headcount is fixed (no growth_factor)
             if category == "Events" and current.month not in (3, 4, 5, 9, 10, 11):
                 amount = random.uniform(lo * 0.2, lo * 0.5)
+            elif category in ("Sales Headcount", "SDR Headcount"):
+                amount = random.uniform(lo, hi)
             else:
                 amount = random.uniform(lo, hi) * growth_factor
 

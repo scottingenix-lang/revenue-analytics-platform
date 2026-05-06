@@ -87,7 +87,7 @@ export default function UnitEconomicsPage() {
           ))
         ) : k ? (
           <>
-            <KpiTile label="Blended CAC" value={fmtUSD(k.blended_cac)} sub="Prior quarter, new logos" />
+            <KpiTile label="Blended CAC" value={fmtUSD(k.blended_cac)} sub="Trailing 12 months, new logos" />
             <KpiTile label="CAC Payback" value={fmtMonths(k.cac_payback_months)} sub="Months to recover CAC" />
             <KpiTile label="Customer LTV" value={fmtUSD(k.ltv)} sub="Based on avg churn" />
             <KpiTile label="LTV / CAC" value={fmtMultiple(k.ltv_cac)} sub="Target: >3x" accent={k.ltv_cac >= 3} />
