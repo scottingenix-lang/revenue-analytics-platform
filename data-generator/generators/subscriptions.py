@@ -68,7 +68,7 @@ def generate_subscriptions(
         # Subscription dates (3-year history; most customers joined 1–2 years ago)
         start_days_ago = random.randint(90, 1095)
         start = date.today() - timedelta(days=start_days_ago)
-        term = random.choices([12, 24, 36], weights=[0.35, 0.25, 0.40])[0]
+        term = random.choices([12, 24, 36], weights=[0.05, 0.05, 0.90])[0]
         end = start + timedelta(days=term * 30)
 
         status = "active" if end >= date.today() else "churned"
@@ -129,24 +129,28 @@ def generate_subscriptions(
             "created_at":     start.isoformat(),
         })
 
-        # Expansion events (NRR > 100% requires expansions)
-        if sub["status"] == "active" and random.random() < 0.25:
-            exp_date = start + timedelta(days=random.randint(180, 365))
-            if exp_date < date.today():
-                delta = round(arr * random.uniform(0.10, 0.35), 2)
-                arr_movements.append({
-                    "id":             str(uuid.uuid4()),
-                    "company_id":     cid,
-                    "subscription_id":sub_id,
-                    "movement_type":  "Expansion",
-                    "arr_delta":      delta,
-                    "arr_before":     arr,
-                    "arr_after":      arr + delta,
-                    "effective_date": exp_date.isoformat(),
-                    "fiscal_quarter": _quarter_label(exp_date),
-                    "created_at":     exp_date.isoformat(),
-                })
-                arr += delta
+        # Expansion events — annual upsell cycle, 60% hit rate per year
+        # Generates realistic NRR > 100% by letting long-term customers expand repeatedly
+        subscription_age_years = max(1, start_days_ago // 365)
+        running_arr = arr
+        for yr in range(1, subscription_age_years + 1):
+            if random.random() < 0.70:
+                exp_date = start + timedelta(days=yr * 365 + random.randint(-45, 45))
+                if exp_date < date.today():
+                    delta = round(running_arr * random.uniform(0.18, 0.42), 2)
+                    arr_movements.append({
+                        "id":             str(uuid.uuid4()),
+                        "company_id":     cid,
+                        "subscription_id":sub_id,
+                        "movement_type":  "Expansion",
+                        "arr_delta":      delta,
+                        "arr_before":     running_arr,
+                        "arr_after":      running_arr + delta,
+                        "effective_date": exp_date.isoformat(),
+                        "fiscal_quarter": _quarter_label(exp_date),
+                        "created_at":     exp_date.isoformat(),
+                    })
+                    running_arr += delta
 
         # Churn event for churned subscriptions
         if sub["status"] == "churned":
