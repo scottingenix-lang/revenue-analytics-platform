@@ -133,6 +133,8 @@ export default function RetentionPage() {
   const [sizeFilter,     setSizeFilter]     = useState('')
   const [verticalFilter, setVerticalFilter] = useState('')
   const [period,         setPeriod]         = useState<Period>('this_fiscal_year')
+  const [mvSizeFilter,     setMvSizeFilter]     = useState('')
+  const [mvVerticalFilter, setMvVerticalFilter] = useState('')
 
   const { data: kpisData, isLoading: loadingKpis } = useQuery<RetentionKpis>({
     queryKey: ['retention-kpis'],
@@ -211,24 +213,40 @@ export default function RetentionPage() {
         )}
       </div>
 
-      {/* Period filter — controls waterfall + movement tables */}
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Period</span>
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-          {PERIOD_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setPeriod(opt.value)}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                period === opt.value
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-slate-600 hover:bg-gray-50'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+      {/* Period + segment filters — control waterfall + movement tables */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Period</span>
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            {PERIOD_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setPeriod(opt.value)}
+                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                  period === opt.value
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white text-slate-600 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
+        <FilterSelect
+          label="Size"
+          value={mvSizeFilter}
+          onChange={setMvSizeFilter}
+          options={SIZE_OPTIONS}
+          allLabel="All Sizes"
+        />
+        <FilterSelect
+          label="Industry"
+          value={mvVerticalFilter}
+          onChange={setMvVerticalFilter}
+          options={verticalOptions}
+          allLabel="All Industries"
+        />
       </div>
 
       {/* ARR Waterfall — driven by period filter */}
@@ -280,32 +298,40 @@ export default function RetentionPage() {
             ))}
           </div>
         ) : mv ? (
-          <>
-            <MovementTable
-              title="New Business"
-              rows={mv.new_business}
-              lastColHeader="New ARR"
-              accentColor="text-indigo-600"
-            />
-            <MovementTable
-              title="Expansion"
-              rows={mv.expansion}
-              lastColHeader="Expansion ARR"
-              accentColor="text-emerald-600"
-            />
-            <MovementTable
-              title="Contraction"
-              rows={mv.contraction}
-              lastColHeader="At Risk ARR"
-              accentColor="text-amber-600"
-            />
-            <MovementTable
-              title="Churn"
-              rows={mv.churn}
-              lastColHeader="Churned ARR"
-              accentColor="text-red-500"
-            />
-          </>
+          (() => {
+            const filterRows = (rows: MovementRow[]) =>
+              rows
+                .filter((r) => !mvSizeFilter     || r.company_size === mvSizeFilter)
+                .filter((r) => !mvVerticalFilter  || r.vertical     === mvVerticalFilter)
+            return (
+              <>
+                <MovementTable
+                  title="New Business"
+                  rows={filterRows(mv.new_business)}
+                  lastColHeader="New ARR"
+                  accentColor="text-indigo-600"
+                />
+                <MovementTable
+                  title="Expansion"
+                  rows={filterRows(mv.expansion)}
+                  lastColHeader="Expansion ARR"
+                  accentColor="text-emerald-600"
+                />
+                <MovementTable
+                  title="Contraction"
+                  rows={filterRows(mv.contraction)}
+                  lastColHeader="At Risk ARR"
+                  accentColor="text-amber-600"
+                />
+                <MovementTable
+                  title="Churn"
+                  rows={filterRows(mv.churn)}
+                  lastColHeader="Churned ARR"
+                  accentColor="text-red-500"
+                />
+              </>
+            )
+          })()
         ) : null}
       </div>
     </div>
