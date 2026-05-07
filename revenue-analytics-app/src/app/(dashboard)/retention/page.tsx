@@ -2,15 +2,9 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import CohortHeatmap from '@/components/charts/CohortHeatmap'
 import { fmtUSD, fmtPct } from '@/lib/format'
-import type { RetentionKpis, CohortRetentionRow } from '@/lib/types'
+import type { RetentionKpis } from '@/lib/types'
 import type { MovementsResponse, MovementRow } from '@/app/api/retention/movements/route'
-
-type CohortsResponse = {
-  rows: CohortRetentionRow[]
-  options: { verticals: string[] }
-}
 
 type Period = 'this_quarter' | 'last_quarter' | 'this_fiscal_year'
 
@@ -130,9 +124,7 @@ function MovementTable({
 }
 
 export default function RetentionPage() {
-  const [sizeFilter,     setSizeFilter]     = useState('')
-  const [verticalFilter, setVerticalFilter] = useState('')
-  const [period,         setPeriod]         = useState<Period>('this_fiscal_year')
+  const [period,           setPeriod]           = useState<Period>('this_fiscal_year')
   const [mvSizeFilter,     setMvSizeFilter]     = useState('')
   const [mvVerticalFilter, setMvVerticalFilter] = useState('')
 
@@ -142,21 +134,16 @@ export default function RetentionPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const { data: cohortsData, isLoading: loadingCohorts } = useQuery<CohortsResponse>({
-    queryKey: ['retention-cohorts'],
-    queryFn: () => fetch('/api/retention/cohorts').then((r) => r.json()),
-    staleTime: 5 * 60 * 1000,
-  })
-
   const { data: movementsData, isLoading: loadingMovements } = useQuery<MovementsResponse>({
     queryKey: ['retention-movements', period],
     queryFn: () => fetch(`/api/retention/movements?period=${period}`).then((r) => r.json()),
     staleTime: 5 * 60 * 1000,
   })
 
-  const verticalOptions = (cohortsData?.options.verticals ?? []).map((v) => ({ value: v, label: v }))
   const k = kpisData
   const mv = movementsData
+  const allRows = mv ? [...mv.new_business, ...mv.expansion, ...mv.contraction, ...mv.churn] : []
+  const verticalOptions = [...new Set(allRows.map((r) => r.vertical).filter(Boolean))].sort().map((v) => ({ value: v, label: v }))
 
   const summary = mv?.summary
   const maxVal = summary ? (summary.new_arr + summary.expansion_arr) : 1
@@ -179,38 +166,6 @@ export default function RetentionPage() {
             <KpiTile label="New Bookings ARR" value={fmtUSD(k.net_new_arr)} sub="Trailing 12 months" color="text-indigo-600" />
           </>
         ) : null}
-      </div>
-
-      {/* Cohort heatmap */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <h3 className="text-sm font-semibold text-slate-700">GRR Cohort Heatmap</h3>
-          <div className="flex flex-wrap gap-4">
-            <FilterSelect
-              label="Size"
-              value={sizeFilter}
-              onChange={setSizeFilter}
-              options={SIZE_OPTIONS}
-              allLabel="All Sizes"
-            />
-            <FilterSelect
-              label="Industry"
-              value={verticalFilter}
-              onChange={setVerticalFilter}
-              options={verticalOptions}
-              allLabel="All Industries"
-            />
-          </div>
-        </div>
-        {loadingCohorts ? (
-          <div className="h-64 animate-pulse bg-gray-100 rounded" />
-        ) : (
-          <CohortHeatmap
-            data={cohortsData?.rows ?? []}
-            sizeFilter={sizeFilter}
-            verticalFilter={verticalFilter}
-          />
-        )}
       </div>
 
       {/* Period + segment filters — control waterfall + movement tables */}
