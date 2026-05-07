@@ -6,7 +6,7 @@ export async function GET() {
   const supabase = await createClient()
 
   const cutoff = new Date()
-  cutoff.setMonth(cutoff.getMonth() - 24)
+  cutoff.setMonth(cutoff.getMonth() - 36)
   const cutoffStr = cutoff.toISOString().split('T')[0]
 
   const { data } = await supabase
