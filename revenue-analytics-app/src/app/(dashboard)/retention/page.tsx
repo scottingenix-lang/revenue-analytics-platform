@@ -5,10 +5,19 @@ import { useQuery } from '@tanstack/react-query'
 import CohortHeatmap from '@/components/charts/CohortHeatmap'
 import { fmtUSD, fmtPct } from '@/lib/format'
 import type { RetentionKpis, CohortRetentionRow } from '@/lib/types'
+import type { MovementsResponse, MovementRow } from '@/app/api/retention/movements/route'
 
 type CohortsResponse = {
   rows: CohortRetentionRow[]
   options: { verticals: string[] }
+}
+
+type Period = 'this_quarter' | 'last_quarter' | 'this_fiscal_year'
+
+const PERIOD_LABELS: Record<Period, string> = {
+  this_quarter:    'This Quarter',
+  last_quarter:    'Last Quarter',
+  this_fiscal_year:'This Fiscal Year',
 }
 
 function KpiTile({ label, value, sub, color = 'text-slate-900' }: { label: string; value: string; sub?: string; color?: string }) {
@@ -57,9 +66,73 @@ const SIZE_OPTIONS = [
   { value: 'Enterprise',  label: 'Enterprise' },
 ]
 
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: 'this_quarter',    label: 'This Quarter' },
+  { value: 'last_quarter',    label: 'Last Quarter' },
+  { value: 'this_fiscal_year',label: 'This Fiscal Year' },
+]
+
+function MovementTable({
+  title,
+  rows,
+  lastColHeader,
+  accentColor,
+}: {
+  title: string
+  rows: MovementRow[]
+  lastColHeader: string
+  accentColor: string
+}) {
+  if (rows.length === 0) {
+    return (
+      <div>
+        <h4 className="text-sm font-semibold text-slate-700 mb-3">{title}</h4>
+        <p className="text-sm text-slate-400 italic">No records in this period.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <h4 className="text-sm font-semibold text-slate-700 mb-3">{title}</h4>
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Company Name</th>
+              <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Current ARR</th>
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Size</th>
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Industry</th>
+              <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Billing Start</th>
+              <th className={`text-right px-4 py-2.5 text-xs font-semibold uppercase tracking-wide ${accentColor}`}>{lastColHeader}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {rows.map((r, i) => (
+              <tr key={`${r.company_id}-${i}`} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-2.5 font-medium text-slate-800">{r.company_name}</td>
+                <td className="px-4 py-2.5 text-right text-slate-600 tabular-nums">{fmtUSD(r.current_arr)}</td>
+                <td className="px-4 py-2.5 text-slate-600">{r.company_size}</td>
+                <td className="px-4 py-2.5 text-slate-600">{r.vertical}</td>
+                <td className="px-4 py-2.5 text-slate-500 tabular-nums">
+                  {r.billing_start_date ? new Date(r.billing_start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                </td>
+                <td className={`px-4 py-2.5 text-right font-semibold tabular-nums ${accentColor}`}>
+                  {fmtUSD(r.movement_arr)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export default function RetentionPage() {
   const [sizeFilter,     setSizeFilter]     = useState('')
   const [verticalFilter, setVerticalFilter] = useState('')
+  const [period,         setPeriod]         = useState<Period>('this_fiscal_year')
 
   const { data: kpisData, isLoading: loadingKpis } = useQuery<RetentionKpis>({
     queryKey: ['retention-kpis'],
@@ -73,12 +146,22 @@ export default function RetentionPage() {
     staleTime: 5 * 60 * 1000,
   })
 
+  const { data: movementsData, isLoading: loadingMovements } = useQuery<MovementsResponse>({
+    queryKey: ['retention-movements', period],
+    queryFn: () => fetch(`/api/retention/movements?period=${period}`).then((r) => r.json()),
+    staleTime: 5 * 60 * 1000,
+  })
+
   const verticalOptions = (cohortsData?.options.verticals ?? []).map((v) => ({ value: v, label: v }))
   const k = kpisData
+  const mv = movementsData
+
+  const summary = mv?.summary
+  const maxVal = summary ? (summary.new_arr + summary.expansion_arr) : 1
 
   return (
     <div className="space-y-6">
-      {/* KPI tiles */}
+      {/* KPI tiles — always T12 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {loadingKpis ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -128,36 +211,102 @@ export default function RetentionPage() {
         )}
       </div>
 
-      {/* ARR Waterfall explanation */}
+      {/* Period filter — controls waterfall + movement tables */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Period</span>
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          {PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                period === opt.value
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white text-slate-600 hover:bg-gray-50'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ARR Waterfall — driven by period filter */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-sm font-semibold text-slate-700 mb-4">ARR Movement Summary — Trailing 12 Months</h3>
-        {k && (
+        <h3 className="text-sm font-semibold text-slate-700 mb-4">
+          ARR Movement Summary — {PERIOD_LABELS[period]}
+        </h3>
+        {loadingMovements ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+            ))}
+          </div>
+        ) : summary ? (
           <div className="space-y-3">
             {[
-              { label: 'New Business', value: k.net_new_arr,        color: 'bg-indigo-500' },
-              { label: 'Expansion',    value: k.expansion_arr,      color: 'bg-emerald-500' },
-              { label: 'Contraction',  value: -k.contraction_arr,   color: 'bg-amber-400' },
-              { label: 'Churn',        value: -k.churn_arr,         color: 'bg-red-500' },
-            ].map(({ label, value, color }) => {
-              const maxVal = k.net_new_arr + k.expansion_arr
+              { label: 'New Business', value: summary.new_arr,        color: 'bg-indigo-500', textColor: 'text-slate-700', positive: true },
+              { label: 'Expansion',    value: summary.expansion_arr,   color: 'bg-emerald-500', textColor: 'text-slate-700', positive: true },
+              { label: 'Contraction',  value: summary.contraction_arr, color: 'bg-amber-400', textColor: 'text-red-500', positive: false },
+              { label: 'Churn',        value: summary.churn_arr,       color: 'bg-red-500', textColor: 'text-red-500', positive: false },
+            ].map(({ label, value, color, textColor, positive }) => {
               const pct = maxVal > 0 ? Math.abs(value / maxVal) * 100 : 0
               return (
                 <div key={label} className="flex items-center gap-3">
                   <div className="w-28 text-xs text-slate-600 font-medium">{label}</div>
                   <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                    <div
-                      className={`h-3 rounded-full ${color}`}
-                      style={{ width: `${Math.min(pct, 100)}%` }}
-                    />
+                    <div className={`h-3 rounded-full ${color}`} style={{ width: `${Math.min(pct, 100)}%` }} />
                   </div>
-                  <div className={`w-20 text-right text-sm font-semibold tabular-nums ${value >= 0 ? 'text-slate-700' : 'text-red-500'}`}>
-                    {value >= 0 ? '+' : ''}{fmtUSD(Math.abs(value))}
+                  <div className={`w-20 text-right text-sm font-semibold tabular-nums ${textColor}`}>
+                    {positive ? '+' : '-'}{fmtUSD(Math.abs(value))}
                   </div>
                 </div>
               )
             })}
           </div>
-        )}
+        ) : null}
+      </div>
+
+      {/* ARR Movement Detail Tables */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-8">
+        <h3 className="text-sm font-semibold text-slate-700">
+          ARR Movement Detail — {PERIOD_LABELS[period]}
+        </h3>
+
+        {loadingMovements ? (
+          <div className="space-y-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-32 bg-gray-100 rounded animate-pulse" />
+            ))}
+          </div>
+        ) : mv ? (
+          <>
+            <MovementTable
+              title="New Business"
+              rows={mv.new_business}
+              lastColHeader="New ARR"
+              accentColor="text-indigo-600"
+            />
+            <MovementTable
+              title="Expansion"
+              rows={mv.expansion}
+              lastColHeader="Expansion ARR"
+              accentColor="text-emerald-600"
+            />
+            <MovementTable
+              title="Contraction"
+              rows={mv.contraction}
+              lastColHeader="At Risk ARR"
+              accentColor="text-amber-600"
+            />
+            <MovementTable
+              title="Churn"
+              rows={mv.churn}
+              lastColHeader="Churned ARR"
+              accentColor="text-red-500"
+            />
+          </>
+        ) : null}
       </div>
     </div>
   )
