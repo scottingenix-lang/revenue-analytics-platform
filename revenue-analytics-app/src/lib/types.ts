@@ -150,3 +150,214 @@ export type CacBySourceRow = {
   total_spend: number
   cac: number
 }
+
+// ── Pipeline — new panels ──────────────────────────────────────
+
+export type StalledDealRow = {
+  id: string
+  name: string
+  company_name: string
+  owner_name: string
+  stage: string
+  segment: string
+  arr: number
+  close_date: string
+  current_stage_age_days: number
+  avg_days_for_stage: number
+  overage_days: number
+  overage_pct: number
+}
+
+export type FastPacingDealRow = {
+  id: string
+  name: string
+  company_name: string
+  owner_name: string
+  stage: string
+  segment: string
+  arr: number
+  close_date: string
+  deal_age_days: number
+  p25_days_to_stage: number
+  days_ahead: number
+}
+
+export type CloseDateDeal = {
+  id: string
+  name: string
+  company_name: string
+  owner_name: string
+  stage: string
+  segment: string
+  arr: number
+  close_date: string
+  probability: number
+  forecast_category: string
+  ai_close_probability: number | null
+}
+
+export type CloseDateWeek = {
+  week_start: string
+  week_label: string
+  deals: CloseDateDeal[]
+  total_arr: number
+  weighted_arr: number
+}
+
+export type DiscoveryOpsRow = {
+  sdr_id: string
+  sdr_name: string
+  sdr_segment: string
+  total_scheduled: number
+  held: number
+  hard_no_show: number
+  recoverable_no_show: number
+  reschedules: number
+  disqualified: number
+  held_rate: number
+  hard_no_show_rate: number
+  reschedule_rate: number
+  disqualification_rate: number
+  avg_reschedules_per_held: number | null
+}
+
+export type DiscoveryBookingWeek = {
+  week_start: string
+  week_label: string
+  sdrs: Record<string, number>
+  total: number
+}
+
+// ── v2.1 — attainment & lag forecast ──────────────────────────
+
+export type RepAttainmentRow = {
+  user_id: string
+  rep_name: string
+  rep_segment: string
+  period_year: number
+  period_quarter: number
+  quota_amount: number
+  ramp_status: string
+  effective_quota: number
+  arr_closed: number
+  deal_count_closed: number
+  pct_attainment: number
+  pipeline_2_qtrs_out: number
+}
+
+export type GoalAttainmentRow = {
+  goal_id: string
+  period_year: number
+  period_quarter: number | null
+  segment: string | null
+  total_arr_goal: number
+  actual_total_arr: number
+  actual_total_wins: number
+  pct_attainment: number
+}
+
+export type PipelineLagForecastRow = {
+  close_quarter: string
+  segment: string
+  lag_quarters: number
+  source_pipeline_arr: number
+  assumed_win_rate: number
+  projected_arr: number
+  projected_wins: number
+}
+
+// ── Attribution — channel handoff ─────────────────────────────
+
+export type ChannelHandoffRow = {
+  original_lead_source: string
+  deal_lead_source: string
+  deal_count: number
+  closed_won_arr: number
+  pct_of_source: number
+}
+
+// ── Unit Economics — channel ROI ──────────────────────────────
+
+export type ChannelRoiRow = {
+  lead_source: string
+  influence_weight: number
+  win_rate_present: number
+  cac: number | null
+  roi_flag: 'green' | 'yellow' | 'red' | 'unknown'
+  deals_with_source: number
+}
+
+// ── Attribution — source conversion funnel ─────────────────────
+
+export type SourceConversionRow = {
+  lead_source: string
+  trailing_12mo_mqls: number
+  trailing_12mo_sqls: number
+  lead_to_mql_pct: number
+  mql_to_sql_pct: number
+  s0_to_s1: number
+  s1_to_s2: number
+  s2_to_s3: number
+  s3_to_s4: number
+  s4_to_s5: number
+  s5_to_s6: number
+  win_rate: number
+  deal_count: number
+}
+
+// ── Attribution — company size × industry cross-section ────────
+
+export type CrossSectionRow = {
+  company_size: string
+  industry: string
+  wins: number
+  total_decided: number
+  win_rate: number
+  avg_arr: number
+  avg_days_to_win: number
+}
+
+// ── Attribution — deal journey ─────────────────────────────────
+
+export type DealSearchResult = {
+  id: string
+  name: string
+  arr: number
+  stage: string
+  close_date: string
+  lead_source: string | null
+}
+
+export type DealJourneyTouch = {
+  id: string
+  touch_type: string
+  touch_date: string
+  pre_or_post_deal: 'pre' | 'post' | 'no_deal'
+  engagement_score: number
+  touch_value: number | null
+  campaign_id: string | null
+  campaign: { name: string; campaign_type: string } | null
+}
+
+export type DealJourneyResponse = {
+  opp: {
+    id: string
+    name: string
+    arr: number
+    stage: string
+    created_date: string
+    close_date: string
+    lead_source: string | null
+    segment: string | null
+    owner_name: string | null
+  }
+  contact: {
+    id: string
+    first_name: string
+    last_name: string
+    title: string | null
+    lead_source: string | null
+    original_lead_source: string | null
+  } | null
+  touches: DealJourneyTouch[]
+}

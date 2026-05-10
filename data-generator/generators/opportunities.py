@@ -85,8 +85,8 @@ def _stage_walk(segment: str, target_stage: str, deal_created: date,
     if target_stage == "Closed Lost":
         # Pick a random stage where the deal died
         lost_at_stage = random.choices(
-            ["0", "1", "2", "3", "4"],
-            weights=[0.20, 0.25, 0.25, 0.20, 0.10]
+            ["0", "1", "2", "3", "4", "5"],
+            weights=[0.20, 0.25, 0.25, 0.18, 0.08, 0.04]
         )[0]
         stages_to_walk = stage_order[:stage_order.index(lost_at_stage) + 1]
     else:
@@ -341,7 +341,8 @@ def generate_opportunities(
         champion_contact_id = deal_contact_ids[0]
         champion = contact_by_id.get(champion_contact_id)
 
-        # Lead source stamped from champion at deal creation
+        # Lead source stamped from champion's current lead_source at deal creation.
+        # ZoomInfo never appears here because CURRENT_LEAD_SOURCE_DIST excludes it.
         deal_lead_source = champion["lead_source"] if champion else None
         deal_lead_source_detail = champion["lead_source_detail"] if champion else None
 

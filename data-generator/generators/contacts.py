@@ -135,16 +135,21 @@ def generate_contacts(companies: list[dict]) -> list[dict]:
             curr_source  = _weighted_choice(CURRENT_LEAD_SOURCE_DIST)
             curr_detail  = _lead_source_detail(curr_source)
 
-            # Lifecycle stage
+            # Lifecycle stage.
+            # Lead stage is omitted — contacts are only tracked once they have
+            # engaged and been assessed against ICP (i.e. MQL or beyond).
             if company["is_customer"]:
+                # Customer contacts include expansion-nurture MQLs alongside
+                # active customers, preventing Customer/Evangelist from
+                # inflating the MQL→SQL rate to 100%.
                 lifecycle = random.choices(
-                    ["Customer", "Evangelist", "SQL"],
-                    weights=[0.75, 0.10, 0.15]
+                    ["MQL", "SQL", "Opportunity", "Customer", "Evangelist"],
+                    weights=[0.30, 0.10, 0.05, 0.40, 0.15]
                 )[0]
             else:
                 lifecycle = random.choices(
-                    ["Lead", "MQL", "SQL", "Opportunity"],
-                    weights=[0.45, 0.30, 0.18, 0.07]
+                    ["MQL", "SQL", "Opportunity"],
+                    weights=[0.75, 0.18, 0.07]
                 )[0]
 
             # Behavioral signals

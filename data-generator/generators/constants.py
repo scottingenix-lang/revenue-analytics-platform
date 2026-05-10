@@ -61,18 +61,19 @@ ORIGINAL_LEAD_SOURCE_DIST = {
     "Sales Generated": 0.02,
 }
 
-# Current lead source skews more toward Website/Webinar (re-engagement)
+# Current lead source — right-half bell curve, Website at peak, Social Ad at tail.
+# ZoomInfo is intentionally excluded: contacts can be *originally* sourced via ZoomInfo
+# (original_lead_source), but their current lead_source never drifts to ZoomInfo.
+# The deal's lead_source is stamped from this value at conversion time.
 CURRENT_LEAD_SOURCE_DIST = {
-    "Website":         0.28,
-    "Webinar":         0.20,
-    "ZoomInfo":        0.14,
-    "Trade Show":      0.08,
-    "PPC":             0.08,
-    "Field Event":     0.07,
-    "Partner":         0.06,
-    "Social Ad":       0.05,
-    "ABM":             0.03,
-    "Sales Generated": 0.01,
+    "Website":     0.32,
+    "Trade Show":  0.23,
+    "Partner":     0.17,
+    "Field Event": 0.12,
+    "ABM":         0.08,
+    "PPC":         0.04,
+    "Webinar":     0.03,
+    "Social Ad":   0.01,
 }
 
 # ── Opportunity targets ───────────────────────────────────────
