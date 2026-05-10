@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { fmtUSD, fmtPct, fmtMultiple, fmtMonths } from '@/lib/format'
-import type { UnitEconomicsKpis, CacBySourceRow } from '@/lib/types'
+import type { UnitEconomicsKpis, CacBySourceRow, ChannelRoiRow } from '@/lib/types'
 
 type UEData = { kpis: UnitEconomicsKpis; cacBySource: CacBySourceRow[] }
 
@@ -64,6 +64,14 @@ export default function UnitEconomicsPage() {
     queryFn: () => fetch('/api/unit-economics/kpis').then((r) => r.json()),
     staleTime: 5 * 60 * 1000,
   })
+
+  const { data: roiResponse, isLoading: loadingRoi } = useQuery<{ rows: ChannelRoiRow[]; dateRange: string }>({
+    queryKey: ['channel-roi'],
+    queryFn:  () => fetch('/api/unit-economics/channel-roi').then((r) => r.json()),
+    staleTime: 10 * 60 * 1000,
+  })
+  const roiData = roiResponse?.rows
+  const roiDateRange = roiResponse?.dateRange
 
   const k = data?.kpis
   const cacBySource = data?.cacBySource ?? []
@@ -145,6 +153,76 @@ export default function UnitEconomicsPage() {
             <p className="text-sm text-slate-400 text-center py-8">No CAC data available.</p>
           )}
         </div>
+      </div>
+
+      {/* ── Channel ROI Sanity Panel ───────────────────────────── */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-slate-700">
+            Converting Channel ROI Health{roiDateRange ? ` — ${roiDateRange}` : ''}
+          </h3>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Influence weight (win-rate × √deal-volume) paired with CAC by source ·
+            <span className="text-emerald-600 font-medium"> Green</span> = high influence + low CAC ·
+            <span className="text-amber-600 font-medium"> Yellow</span> = mixed ·
+            <span className="text-red-500 font-medium"> Red</span> = low influence + high CAC
+          </p>
+        </div>
+        {loadingRoi ? (
+          <div className="p-5 space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />)}
+          </div>
+        ) : (roiData ?? []).length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-8">No channel ROI data.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Channel</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Influence Weight</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate (present)</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Deals w/ Source</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">CAC</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">ROI Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(roiData ?? []).map((r, i) => {
+                const maxWeight = Math.max(...(roiData ?? []).map((x) => x.influence_weight), 1)
+                function winRateColor(p: number) {
+                  return p >= 20 ? 'text-emerald-600' : p >= 15 ? 'text-amber-600' : 'text-red-500'
+                }
+                return (
+                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-700">{r.lead_source}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-20 bg-gray-100 rounded-full h-1.5">
+                          <div
+                            className="bg-indigo-500 h-1.5 rounded-full"
+                            style={{ width: `${(r.influence_weight / maxWeight) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-slate-700 font-semibold tabular-nums text-xs">{r.influence_weight.toFixed(3)}</span>
+                      </div>
+                    </td>
+                    <td className={`px-4 py-3 text-right tabular-nums font-semibold ${winRateColor(r.win_rate_present)}`}>{fmtPct(r.win_rate_present)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-slate-500">{r.deals_with_source}</td>
+                    <td className="px-4 py-3 text-right tabular-nums font-semibold text-slate-900">
+                      {r.cac != null ? fmtUSD(r.cac) : <span className="text-slate-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {r.roi_flag === 'green'  && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">● Efficient</span>}
+                      {r.roi_flag === 'yellow' && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">● Mixed</span>}
+                      {r.roi_flag === 'red'    && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">● Expensive</span>}
+                      {r.roi_flag === 'unknown'&& <span className="text-slate-300 text-xs">No CAC data</span>}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )
