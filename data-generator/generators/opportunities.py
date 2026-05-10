@@ -20,6 +20,7 @@ Key rules:
 
 import uuid
 import random
+import calendar
 import numpy as np
 from datetime import date, timedelta, datetime
 from typing import Optional
@@ -133,6 +134,15 @@ def _stage_walk(segment: str, target_stage: str, deal_created: date,
         current_date += timedelta(days=days_spent)
 
     return history, current_date
+
+
+def _close_date_in_quarter(today: date) -> date:
+    """Return a close date spread across the current quarter, weighted toward month 3."""
+    q = (today.month - 1) // 3
+    q_months = [q * 3 + 1, q * 3 + 2, q * 3 + 3]  # 1-indexed months
+    chosen_month = random.choices(q_months, weights=[0.15, 0.30, 0.55])[0]
+    days_in_month = calendar.monthrange(today.year, chosen_month)[1]
+    return date(today.year, chosen_month, random.randint(1, days_in_month))
 
 
 def generate_users() -> list[dict]:
@@ -318,9 +328,8 @@ def generate_opportunities(
         if final_stage in ("6", "Closed Lost"):
             close_date = last_stage_date
         else:
-            # Quarter-end clustering for open deals
-            q_end = _next_quarter_end(date.today())
-            close_date = q_end + timedelta(days=random.randint(-14, 14))
+            # Spread open deals across the quarter, weighted toward the last month
+            close_date = _close_date_in_quarter(date.today())
 
         # Probability
         prob = STAGE_PROBABILITY.get(final_stage, 50)
