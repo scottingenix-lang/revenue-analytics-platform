@@ -204,6 +204,24 @@ export type CloseDateWeek = {
   weighted_arr: number
 }
 
+export type ForecastMonth = {
+  label: string
+  month: string
+  committed_arr: number
+  pipeline_arr: number
+  deals: CloseDateDeal[]
+}
+
+export type QuarterForecast = {
+  label: string
+  quota: number
+  closed_arr: number
+  committed_arr: number
+  pipeline_arr: number
+  gap: number
+  months: ForecastMonth[]
+}
+
 export type DiscoveryOpsRow = {
   sdr_id: string
   sdr_name: string
