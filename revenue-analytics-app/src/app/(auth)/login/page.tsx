@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('demo@revenue.local')
+  const [password, setPassword] = useState('demo1234')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
