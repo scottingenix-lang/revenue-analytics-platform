@@ -16,11 +16,9 @@ type Model = 'first_touch' | 'last_touch' | 'linear' | 'time_decay' | 'w_shaped'
 type Timeframe = 'this_quarter' | 'last_quarter' | 'this_year' | 'all_time'
 
 const MODELS: { id: Model; label: string }[] = [
+  { id: 'last_touch',  label: 'Converting Touch' },
   { id: 'first_touch', label: 'First Touch' },
-  { id: 'last_touch',  label: 'Last Touch' },
-  { id: 'linear',      label: 'Linear' },
-  { id: 'time_decay',  label: 'Time Decay' },
-  { id: 'w_shaped',    label: 'W-Shaped' },
+  { id: 'time_decay',  label: 'Most Recent' },
 ]
 
 const MODEL_DESCRIPTIONS: Record<Model, string> = {
@@ -41,7 +39,7 @@ const TIMEFRAMES: { id: Timeframe; label: string }[] = [
 const ALL_STAGE_KEYS = new Set(ATTRIBUTION_STAGES.map((s) => s.key)) as Set<StageKey>
 
 export default function AttributionPage() {
-  const [model, setModel]           = useState<Model>('first_touch')
+  const [model, setModel]           = useState<Model>('last_touch')
   const [timeframe, setTimeframe]   = useState<Timeframe>('all_time')
   const [visibleStages, setVisible] = useState<Set<StageKey>>(new Set(ALL_STAGE_KEYS))
   const [handoffView, setHandoffView] = useState<'table' | 'matrix'>('matrix')

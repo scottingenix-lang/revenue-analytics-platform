@@ -9,99 +9,53 @@ const STEPS = [
     page: '/executive-overview',
     tourId: 'gtm-scorecard',
     pageLabel: 'Executive Overview',
-    title: 'GTM Scorecard',
-    body: "See immediately whether the quarter is on track. Pace-adjusted attainment accounts for how much of the quarter has elapsed — so 40% closed with 45% of days gone means you're slightly ahead, not behind. The status badge reflects that math in real time.",
-  },
-  {
-    page: '/executive-overview',
-    tourId: 'kpi-tiles',
-    pageLabel: 'Executive Overview',
-    title: 'Executive Health Metrics',
-    body: 'Eleven GTM health metrics in one row: ARR growth, NRR, pipeline coverage, win rate, average deal size, sales cycle, CAC payback, LTV/CAC, gross margin, Magic Number, and Rule of 40. A complete executive snapshot without a single spreadsheet.',
-  },
-  {
-    page: '/executive-overview',
-    tourId: 'arr-trend',
-    pageLabel: 'Executive Overview',
-    title: 'ARR Trend by Segment',
-    body: 'Trailing 12-month ARR broken down by SMB, Mid-Market, and Enterprise. Spot which segments are accelerating, plateauing, or declining before the board meeting — and answer the first question every investor asks.',
+    title: 'The Quarter is Behind Pace',
+    body: "The GTM Scorecard shows pace-adjusted attainment — not just what's closed, but whether it's enough given how much of the quarter has elapsed. When the badge turns amber or red, you have a problem that needs attention today, not at the QBR.",
+    boldLine: "The quarter is pacing behind so let's go to the Pipeline & Sales Velocity page to see what we can do.",
   },
   {
     page: '/pipeline',
-    tourId: 'pipeline-kpis',
+    tourId: 'forecast',
+    scrollToTop: true,
     pageLabel: 'Pipeline',
-    title: 'Pipeline Health',
-    body: 'Open deals, total pipeline ARR, probability-weighted ARR, coverage ratio, win rate, and average sales cycle. These are the leading indicators of the quarter — changes here show up in revenue 30–60 days later.',
+    title: 'The Q2 Forecast Bar',
+    body: "The monthly breakdown of open pipeline shows where deals are clustered. Back-weighted pipeline means most of it naturally closes in June — too late to help a behind-quarter sprint. The months in the open pipeline bar show you exactly how much ARR is realistically pullable into earlier months.",
+    boldLine: "Expand the Fast-Pacing Non-Committed Deals panel to see which deals we need to focus on to hit the goal.",
   },
   {
     page: '/pipeline',
-    tourId: 'stage-velocity',
+    tourId: 'fast-candidates',
+    scrollToTop: true,
     pageLabel: 'Pipeline',
-    title: 'Stage Velocity & Conversion',
-    body: 'Time-in-stage and conversion rate for every funnel step, filterable by rep, company size, or industry. When a stage shows rising days and falling conversion, that\'s exactly where coaching should focus.',
+    title: 'Deals Ready to Accelerate',
+    body: "Fast-pacing deals are reaching their current stage faster than 75% of comparable deals in the same segment and stage. That velocity signal means the buyer is engaged and ready. These are your best candidates for executive sponsorship, a commercial push, or an early close incentive.",
+    boldLine: "Pick the top 3-5 deals to pull via ARR, Close Date, and Pacing.",
   },
   {
     page: '/pipeline',
     tourId: 'stalled-deals',
+    scrollToTop: true,
     pageLabel: 'Pipeline',
-    title: 'Stalled Deals',
-    body: "Deals that haven't advanced in longer than the benchmark for their stage. The overage badge shows how far past typical each deal is. These are revenue-at-risk that show up nowhere in a standard CRM view.",
-  },
-  {
-    page: '/pipeline',
-    tourId: 'discovery-booking',
-    pageLabel: 'Pipeline',
-    title: 'Discovery Calendar',
-    body: 'A forward 4-week view of booked discovery meetings, stacked by SDR. Low volume in weeks 3–4 is an early warning sign of pipeline gaps 60–90 days out — visible now, while there\'s still time to act.',
+    title: 'Pipeline Clean Up',
+    body: "Every stalled deal inflates your pipeline number, so we highlight deals that are 300+ slower than the Closed Won pace.",
+    boldLine: "Assign a next action to every red deal and delete any deals you know are lost.",
   },
   {
     page: '/attribution',
     tourId: 'attribution-models',
     pageLabel: 'Attribution',
-    title: 'Attribution Models',
-    body: 'Five models — First Touch, Last Touch, Linear, Time Decay, and W-Shaped — each telling a different story about which channels drive revenue. First Touch reveals what starts conversations; W-Shaped balances the full journey. Compare them before your next budget cycle.',
-  },
-  {
-    page: '/attribution',
-    tourId: 'funnel-conversion',
-    pageLabel: 'Attribution',
-    title: 'Funnel Conversion Rates',
-    body: 'Lead → MQL → SQL → each pipeline stage → closed-won. Break it down by source, company size, or industry to find where your best-fit leads convert best — and where volume is leaking out of the funnel.',
+    title: 'What\'s Actually Driving Pipeline',
+    body: "Three attribution models show which marketing channels Convert the most Deals, Drive the most MQLs, and which campaigns have recently gained the most engagement. We see here that Trade Shows and the Website have been generating the most deals.",
+    boldLine: "Ensure ABM campaigns have steps that include the top converting channels.",
   },
   {
     page: '/attribution',
     tourId: 'win-rate-cross-section',
+    scrollToTop: true,
     pageLabel: 'Attribution',
-    title: 'Win Rate by Segment Combination',
-    body: 'The highest and lowest-performing combinations of company size × industry. Knowing that Enterprise Healthcare closes at 20% while SMB SaaS closes at 70%+ informs both targeting strategy and how you weight opportunities in your forecast.',
-  },
-  {
-    page: '/unit-economics',
-    tourId: 'unit-economics-kpis',
-    pageLabel: 'Unit Economics',
-    title: 'Unit Economics',
-    body: 'CAC, payback period, LTV, LTV/CAC, gross margin, ARR growth, and Magic Number. These seven metrics answer a single question investors always ask: is growth efficient? A Magic Number above 0.75 means every marketing dollar generates meaningful ARR.',
-  },
-  {
-    page: '/unit-economics',
-    tourId: 'channel-roi',
-    pageLabel: 'Unit Economics',
-    title: 'Channel ROI Health',
-    body: 'Each channel ranked by influence weight — win-rate × √deal volume — paired with its cost-per-acquisition. Green = high influence, low CAC. Red = expensive and underperforming. This is where the budget reallocation conversation starts.',
-  },
-  {
-    page: '/retention',
-    tourId: 'retention-kpis',
-    pageLabel: 'Retention',
-    title: 'Retention Metrics',
-    body: 'NRR above 100% means existing customers alone can compound ARR growth — the fundamental SaaS flywheel. GRR below 90% signals churn is outrunning expansion. These two numbers define whether you have a leaky bucket or a self-reinforcing growth engine.',
-  },
-  {
-    page: '/retention',
-    tourId: 'arr-waterfall',
-    pageLabel: 'Retention',
-    title: 'ARR Movement Detail',
-    body: "New business, expansion, contraction, and churn broken down by period and filterable by company size and industry. This answers not just what your NRR is, but exactly where it's coming from — and which customer segments are driving or dragging it.",
+    title: 'Which ICP Audiences to Focus On',
+    body: "Looking at the target Industries and Company Size × Win Rate will tell you two things: 1. Where to focus ABM campaigns 2. More direction when evaluating which deals to pull into this quarter.",
+    boldLine: "Relay this information to the sales and marketing teams for planning future quarters and for making in-quarter adjustments.",
   },
 ]
 
@@ -134,16 +88,30 @@ function TourOverlayInner() {
     document.querySelectorAll('.tour-highlight').forEach((el) => el.classList.remove('tour-highlight'))
     highlightRef.current = null
 
-    const timeout = setTimeout(() => {
+    let cancelled = false
+    const tryHighlight = (attemptsLeft: number) => {
+      if (cancelled) return
       const el = document.querySelector(`[data-tour="${current.tourId}"]`) as HTMLElement | null
-      if (el) {
-        el.classList.add('tour-highlight')
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        highlightRef.current = el
+      if (!el) {
+        if (attemptsLeft > 0) setTimeout(() => tryHighlight(attemptsLeft - 1), 200)
+        return
       }
-    }, 350)
+      el.classList.add('tour-highlight')
+      highlightRef.current = el
+      if (current.scrollToTop) {
+        const container = document.querySelector('main')
+        if (container) {
+          const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 16
+          container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+        }
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+    const timeout = setTimeout(() => tryHighlight(10), 350)
 
     return () => {
+      cancelled = true
       clearTimeout(timeout)
       document.querySelectorAll('.tour-highlight').forEach((el) => el.classList.remove('tour-highlight'))
     }
@@ -167,11 +135,8 @@ function TourOverlayInner() {
 
   return (
     <>
-      {/* Subtle dim — pointer-events:none so users can still interact with the page */}
-      <div className="fixed inset-0 bg-black/20 pointer-events-none z-40" aria-hidden="true" />
-
       {/* Tour panel */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-4xl px-4">
         <div className="bg-slate-900 rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
 
           {/* Progress bar */}
@@ -189,11 +154,11 @@ function TourOverlayInner() {
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${pageColor}`}>
                   {current.pageLabel}
                 </span>
-                <span className="text-xs text-slate-500">{step + 1} of {TOTAL}</span>
+                <span className="text-xs text-white/60">{step + 1} of {TOTAL}</span>
               </div>
               <button
                 onClick={exitTour}
-                className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                className="text-xs text-white/70 hover:text-white transition-colors"
               >
                 Exit tour ✕
               </button>
@@ -201,7 +166,10 @@ function TourOverlayInner() {
 
             {/* Content */}
             <h3 className="text-base font-bold text-white mb-1.5">{current.title}</h3>
-            <p className="text-sm text-slate-400 leading-relaxed mb-4">{current.body}</p>
+            <p className="text-sm text-white/80 leading-relaxed mb-2">{current.body}</p>
+            {current.boldLine && (
+              <p className="text-sm font-bold italic text-white leading-relaxed mb-4">{current.boldLine}</p>
+            )}
 
             {/* Footer: dots + nav */}
             <div className="flex items-center justify-between gap-3">
@@ -233,11 +201,11 @@ function TourOverlayInner() {
                 )}
                 {isLast ? (
                   <Link
-                    href="/login"
+                    href="/executive-overview"
                     onClick={() => document.querySelectorAll('.tour-highlight').forEach((el) => el.classList.remove('tour-highlight'))}
                     className="px-5 py-1.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
                   >
-                    Go to Platform →
+                    Explore the platform →
                   </Link>
                 ) : (
                   <button

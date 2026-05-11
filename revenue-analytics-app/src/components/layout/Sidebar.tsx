@@ -15,8 +15,8 @@ import {
 
 const navItems = [
   { label: 'Executive Overview', href: '/executive-overview', icon: LayoutDashboard },
-  { label: 'Attribution', href: '/attribution', icon: GitBranch },
   { label: 'Pipeline & Sales Velocity', href: '/pipeline', icon: TrendingUp },
+  { label: 'Attribution', href: '/attribution', icon: GitBranch },
   { label: 'Retention & Expansion', href: '/retention', icon: Users },
   { label: 'Unit Economics', href: '/unit-economics', icon: DollarSign },
   { label: 'Admin / Data Quality', href: '/admin', icon: ShieldCheck },

@@ -25,7 +25,7 @@ export async function GET() {
     return { label, month }
   })
 
-  const [closedRes, openRes, usersRes, companiesRes] = await Promise.all([
+  const [closedRes, openRes, usersRes, companiesRes, goalRes] = await Promise.all([
     supabase
       .from('sls_opportunities')
       .select('arr')
@@ -41,12 +41,22 @@ export async function GET() {
       .order('close_date', { ascending: true }),
     supabase.from('sls_users').select('id, name, quota, role'),
     supabase.from('mkt_companies').select('id, name'),
+    supabase
+      .from('fin_revenue_goals')
+      .select('new_business_arr_goal, expansion_arr_goal')
+      .eq('period_year', year)
+      .eq('period_quarter', qIdx + 1)
+      .is('segment', null)
+      .maybeSingle(),
   ])
 
-  // Quarterly quota = sum of AE annual quotas / 4
-  const quarterlyQuota = (usersRes.data ?? [])
-    .filter((u) => u.role === 'AE' && u.quota)
-    .reduce((s, u) => s + Number(u.quota ?? 0), 0) / 4
+  // Quarterly goal: use fin_revenue_goals if available, else fall back to AE quotas / 4
+  const goalRow = goalRes.data
+  const quarterlyQuota = goalRow
+    ? Number(goalRow.new_business_arr_goal ?? 0)
+    : (usersRes.data ?? [])
+        .filter((u) => u.role === 'AE' && u.quota)
+        .reduce((s, u) => s + Number(u.quota ?? 0), 0) / 4
 
   const userMap: Record<string, string> = {}
   for (const u of usersRes.data ?? []) userMap[u.id] = u.name ?? ''

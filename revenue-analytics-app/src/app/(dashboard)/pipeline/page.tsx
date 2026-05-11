@@ -102,9 +102,9 @@ export default function PipelinePage() {
   const [discSize,   setDiscSize]   = useState('')
 
   // ── Stalled / fast-pacing expand ────────────────────────────
-  const [stalledExpanded, setStalledExpanded]   = useState(true)
-  const [fastExpanded,    setFastExpanded]      = useState(true)
-  const [forecastExpanded,setForecastExpanded]  = useState(true)
+  const [stalledExpanded,        setStalledExpanded]        = useState(true)
+  const [fastExpanded,           setFastExpanded]           = useState(true)
+  const [fastCandidatesExpanded, setFastCandidatesExpanded] = useState(true)
 
   // ── Queries ───────────────────────────────────────────────────
   const { data: pipelineData, isLoading: loadingPipeline } = useQuery<PipelineData>({
@@ -204,22 +204,15 @@ export default function PipelinePage() {
       </div>
 
       {/* ── Close-Date Forecast ───────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <button
-          onClick={() => setForecastExpanded((v) => !v)}
-          className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-        >
-          <div>
-            <h3 className="text-sm font-semibold text-slate-700">
-              Close-Date Forecast{quarter ? ` — ${quarter.label}` : ''}
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Closed vs. committed vs. gap to quota · expand each month to see deals</p>
-          </div>
-          <span className="text-slate-400 text-lg">{forecastExpanded ? '▲' : '▼'}</span>
-        </button>
+      <div data-tour="forecast" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4">
+          <h3 className="text-sm font-semibold text-slate-700">
+            Close-Date Forecast{quarter ? ` — ${quarter.label}` : ''}
+          </h3>
+          <p className="text-xs text-slate-400 mt-0.5">Closed vs. committed vs. gap to quota · expand each month to see deals</p>
+        </div>
 
-        {forecastExpanded && (
-          <div className="border-t border-gray-100 p-5 space-y-5">
+        <div className="border-t border-gray-100 p-5 space-y-5">
             {loadingForecast || !quarter ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-14 bg-gray-100 rounded animate-pulse" />)}
@@ -246,19 +239,67 @@ export default function PipelinePage() {
                   {/* ── Quarter overview bar ─────────────────── */}
                   <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 space-y-3">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-slate-700">{quarter.label} Overview</span>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${quarter.gap > 0 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'}`}>
-                          {quarter.gap > 0 ? `${fmtUSD(quarter.gap)} gap to quota` : '✓ On Track'}
-                        </span>
+                        {(() => {
+                          const highConf  = quarter.closed_arr + quarter.committed_arr
+                          const pacePct   = progressPct / 100
+                          const status =
+                            highConf >= quota * pacePct * 1.25 ? { label: '✓ On Track',  cls: 'bg-emerald-100 text-emerald-700' } :
+                            highConf >= quota * pacePct * 1.00 ? { label: '⚠ Watch',     cls: 'bg-amber-100 text-amber-700'    } :
+                            highConf >= quota * pacePct * 0.75 ? { label: '⚡ At Risk',   cls: 'bg-orange-100 text-orange-700'  } :
+                                                                 { label: '✗ Behind',    cls: 'bg-red-100 text-red-700'        }
+                          const p = Math.round(progressPct)
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${status.cls}`}>{status.label}</span>
+                              <div className="relative group">
+                                <span className="text-xs text-slate-300 hover:text-slate-500 cursor-default select-none leading-none">ⓘ</span>
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 bg-slate-900 text-white text-xs rounded-lg p-3 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none shadow-xl">
+                                  <p className="font-semibold text-slate-200 mb-2">Status based on Closed + Committed vs. slip-adjusted pace target:</p>
+                                  <ul className="space-y-1.5 text-slate-300">
+                                    <li><span className="text-emerald-400 font-semibold">✓ On Track</span> — ≥ {Math.round(p * 1.25)}% of quota. Carrying a 25% buffer above pace to absorb deal slippage.</li>
+                                    <li><span className="text-amber-400 font-semibold">⚠ Watch</span> — {p}–{Math.round(p * 1.25) - 1}% of quota. At pace but no buffer — one slip puts the quarter at risk.</li>
+                                    <li><span className="text-orange-400 font-semibold">⚡ At Risk</span> — {Math.round(p * 0.75)}–{p - 1}% of quota. Behind pace; pipeline needs above-average conversion.</li>
+                                    <li><span className="text-red-400 font-semibold">✗ Behind</span> — &lt; {Math.round(p * 0.75)}% of quota. Significant gap; requires exceptional pipeline performance.</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })()}
                       </div>
-                      <span className="text-xs text-slate-400 shrink-0">Quota: <span className="font-semibold text-slate-600">{fmtUSD(quarter.quota)}</span></span>
+                      <span className="text-xs text-slate-400 shrink-0">Quarter Goal: <span className="font-semibold text-slate-600">{fmtUSD(quarter.quota)}</span></span>
                     </div>
                     {/* ARR stacked bar */}
                     <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
                       <div className="absolute inset-y-0 left-0 bg-indigo-600 rounded-l-full transition-all" style={{ width: `${closedPct}%` }} />
                       <div className="absolute inset-y-0 bg-indigo-400 transition-all" style={{ left: `${closedPct}%`, width: `${committedPct}%` }} />
-                      <div className="absolute inset-y-0 bg-indigo-200 transition-all" style={{ left: `${closedPct + committedPct}%`, width: `${pipelinePct}%` }} />
+                      {/* Open pipeline split by month */}
+                      {(() => {
+                        const totalPipe = quarter.months.reduce((s, m) => s + m.pipeline_arr, 0)
+                        return (
+                          <div
+                            className="absolute inset-y-0 flex overflow-hidden"
+                            style={{ left: `${closedPct + committedPct}%`, width: `${pipelinePct}%` }}
+                          >
+                            {quarter.months.map((m, i) => {
+                              const frac = totalPipe > 0 ? m.pipeline_arr / totalPipe : 1 / quarter.months.length
+                              const abbr = m.label.split(' ')[0].slice(0, 3)
+                              return (
+                                <div
+                                  key={m.month}
+                                  className="relative h-full bg-indigo-200 flex items-center justify-center overflow-hidden"
+                                  style={{ width: `${frac * 100}%` }}
+                                >
+                                  {i > 0 && <div className="absolute left-0 inset-y-0 w-px bg-black/25" />}
+                                  <span className="text-[10px] font-medium text-black/50 select-none leading-none">{abbr}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })()}
                       {gapPct > 0 && <div className="absolute inset-y-0 bg-gray-200 rounded-r-full" style={{ left: `${closedPct + committedPct + pipelinePct}%`, width: `${gapPct}%` }} />}
                     </div>
                     {/* Legend */}
@@ -278,6 +319,87 @@ export default function PipelinePage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* ── Fast-Pacing Deal Candidates ──────────── */}
+                  {(() => {
+                    const currQStartMon = qIdx2 * 3 + 1
+                    const currQPrefixes = [0, 1, 2].map(i => `${now.getFullYear()}-${String(currQStartMon + i).padStart(2, '0')}`)
+                    const nextQIdx      = (qIdx2 + 1) % 4
+                    const nextQYear     = nextQIdx === 0 ? now.getFullYear() + 1 : now.getFullYear()
+                    const nextQStartMon = nextQIdx * 3 + 1
+                    const nextQPrefixes = [0, 1, 2].map(i => `${nextQYear}-${String(nextQStartMon + i).padStart(2, '0')}`)
+                    const nextQLabel    = `Q${nextQIdx + 1} ${nextQYear}`
+                    const sorted        = (arr: typeof fast) => [...arr].sort((a, b) => (a.close_date ?? '').localeCompare(b.close_date ?? ''))
+                    const q2Fast        = sorted(fast.filter(d => currQPrefixes.some(p => (d.close_date ?? '').startsWith(p))))
+                    const q3Fast        = sorted(fast.filter(d => nextQPrefixes.some(p => (d.close_date ?? '').startsWith(p))))
+                    if (q2Fast.length === 0 && q3Fast.length === 0) return null
+                    const totalARR      = [...q2Fast, ...q3Fast].reduce((s, d) => s + d.arr, 0)
+                    const dealTable = (deals: typeof fast, closeDateColor: string) => deals.map((d) => (
+                      <tr key={d.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-2">
+                          <p className="font-medium text-slate-700 truncate max-w-[180px]">{d.name}</p>
+                          <p className="text-xs text-slate-400 truncate max-w-[180px]">{d.company_name}</p>
+                        </td>
+                        <td className="px-4 py-2 text-slate-500 text-xs whitespace-nowrap">{STAGE_LABELS[d.stage] ?? `Stage ${d.stage}`}</td>
+                        <td className="px-4 py-2 text-right tabular-nums font-semibold text-slate-900 whitespace-nowrap">{fmtUSD(d.arr)}</td>
+                        <td className={`px-4 py-2 text-right tabular-nums font-medium whitespace-nowrap ${closeDateColor}`}>{d.close_date}</td>
+                        <td className="px-4 py-2">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-700">
+                            −{d.days_ahead}d ahead
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-slate-500 text-xs whitespace-nowrap">{d.owner_name}</td>
+                      </tr>
+                    ))
+                    return (
+                      <div data-tour="fast-candidates" className="rounded-xl border border-indigo-100 bg-indigo-50/30 overflow-hidden">
+                        <button
+                          onClick={() => setFastCandidatesExpanded((v) => !v)}
+                          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-indigo-50/50 transition-colors border-b border-indigo-100"
+                        >
+                          <div>
+                            <h4 className="text-sm font-semibold text-slate-700">Fast-Pacing Non-Committed Deals - Potential to Pull into This Quarter</h4>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              Open deals pacing ahead of benchmark — best targets to accelerate or pull forward
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0 ml-4">
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-slate-800">{fmtUSD(totalARR)}</p>
+                              <p className="text-xs text-slate-400">{q2Fast.length + q3Fast.length} deal{(q2Fast.length + q3Fast.length) !== 1 ? 's' : ''}</p>
+                            </div>
+                            <span className="text-slate-400 text-lg">{fastCandidatesExpanded ? '▲' : '▼'}</span>
+                          </div>
+                        </button>
+                        {fastCandidatesExpanded && <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-indigo-50/40 border-b border-indigo-100">
+                              <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Deal</th>
+                              <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Stage</th>
+                              <th className="text-right px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">ARR</th>
+                              <th className="text-right px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Close Date</th>
+                              <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Pacing</th>
+                              <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Owner</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {q2Fast.length > 0 && (
+                              <tr><td colSpan={6} className="px-4 pt-3 pb-1">
+                                <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">{quarter.label} Open Pipeline</span>
+                              </td></tr>
+                            )}
+                            {dealTable(q2Fast, 'text-indigo-600')}
+                            {q3Fast.length > 0 && (
+                              <tr><td colSpan={6} className="px-4 pt-3 pb-1 border-t border-indigo-100">
+                                <span className="text-xs font-semibold text-amber-600 uppercase tracking-wide">{nextQLabel} Pull-Forward Candidates</span>
+                              </td></tr>
+                            )}
+                            {dealTable(q3Fast, 'text-amber-600')}
+                          </tbody>
+                        </table>}
+                      </div>
+                    )
+                  })()}
 
                   {/* ── Month sub-bars ────────────────────────── */}
                   {quarter.months.map((m) => {
@@ -358,7 +480,6 @@ export default function PipelinePage() {
               )
             })()}
           </div>
-        )}
       </div>
 
       {/* ── Panel B: Stage Velocity ────────────────────────────── */}
@@ -455,7 +576,7 @@ export default function PipelinePage() {
       </div>
 
       {/* ── Panel D: Fast-Pacing Deals ────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div data-tour="fast-pacing" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <button
           onClick={() => setFastExpanded((v) => !v)}
           className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"

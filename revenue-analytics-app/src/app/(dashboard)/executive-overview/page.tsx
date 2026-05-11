@@ -43,7 +43,7 @@ function SupportTile({ label, primary, sub, color = 'text-white' }: {
     <div className="p-5 flex-1 min-w-0">
       <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">{label}</p>
       <p className={`text-2xl font-bold tabular-nums leading-none mb-1 ${color}`}>{primary}</p>
-      <p className="text-xs text-slate-500">{sub}</p>
+      <p className="text-xs text-slate-300">{sub}</p>
     </div>
   )
 }
@@ -190,8 +190,8 @@ export default async function ExecutiveOverviewPage() {
   const goals       = goalsData.data ?? []
   const qGoalRow    = goals.find((g) => g.period_quarter === (qIdx + 1))
   const annualGoalRow = goals.find((g) => g.period_quarter === null)
-  const qGoal       = qGoalRow    ? Number(qGoalRow.new_business_arr_goal)    + Number(qGoalRow.expansion_arr_goal)    : quarterly_quota
-  const annualGoal  = annualGoalRow ? Number(annualGoalRow.new_business_arr_goal) + Number(annualGoalRow.expansion_arr_goal) : quarterly_quota * 4
+  const qGoal       = qGoalRow     ? Number(qGoalRow.new_business_arr_goal)     : quarterly_quota
+  const annualGoal  = annualGoalRow ? Number(annualGoalRow.new_business_arr_goal) : quarterly_quota * 4
 
   const qClosedArr     = (qClosedData.data   ?? []).reduce((s, o) => s + Number(o.arr), 0)
   const ytdClosedArr   = (ytdClosedData.data  ?? []).reduce((s, o) => s + Number(o.arr), 0)
