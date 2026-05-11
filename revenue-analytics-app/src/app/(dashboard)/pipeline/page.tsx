@@ -184,7 +184,7 @@ export default function PipelinePage() {
     <div className="space-y-6">
 
       {/* ── KPI tiles ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div data-tour="pipeline-kpis" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {loadingPipeline ? (
           Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />
@@ -362,7 +362,7 @@ export default function PipelinePage() {
       </div>
 
       {/* ── Panel B: Stage Velocity ────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div data-tour="stage-velocity" className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
           <h3 className="text-sm font-semibold text-slate-700">Stage Velocity &amp; Conversion</h3>
           <div className="flex flex-wrap gap-4">
@@ -392,7 +392,7 @@ export default function PipelinePage() {
       </div>
 
       {/* ── Panel C: Stalled Deals ────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div data-tour="stalled-deals" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <button
           onClick={() => setStalledExpanded((v) => !v)}
           className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
@@ -522,7 +522,7 @@ export default function PipelinePage() {
       </div>
 
       {/* ── Panel E: Discovery Meeting Ops ────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div data-tour="discovery-booking" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-700">Discovery Meeting Operations</h3>

@@ -88,7 +88,7 @@ export default function UnitEconomicsPage() {
   return (
     <div className="space-y-6">
       {/* Primary KPI tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div data-tour="unit-economics-kpis" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {isLoading ? (
           Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />
@@ -156,7 +156,7 @@ export default function UnitEconomicsPage() {
       </div>
 
       {/* ── Channel ROI Sanity Panel ───────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div data-tour="channel-roi" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-slate-700">
             Converting Channel ROI Health{roiDateRange ? ` — ${roiDateRange}` : ''}

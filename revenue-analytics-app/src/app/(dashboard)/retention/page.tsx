@@ -151,7 +151,7 @@ export default function RetentionPage() {
   return (
     <div className="space-y-6">
       {/* KPI tiles — always T12 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div data-tour="retention-kpis" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {loadingKpis ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />
@@ -205,7 +205,7 @@ export default function RetentionPage() {
       </div>
 
       {/* ARR Waterfall — driven by period filter */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div data-tour="arr-waterfall" className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-sm font-semibold text-slate-700 mb-4">
           ARR Movement Summary — {PERIOD_LABELS[period]}
         </h3>

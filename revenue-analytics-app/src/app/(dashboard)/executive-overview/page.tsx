@@ -242,7 +242,7 @@ export default async function ExecutiveOverviewPage() {
     <div className="space-y-6">
 
       {/* ── GTM Scorecard ─────────────────────────────────────── */}
-      <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-xl">
+      <div data-tour="gtm-scorecard" className="bg-slate-900 rounded-2xl overflow-hidden shadow-xl">
 
         {/* Header row */}
         <div className="px-6 py-4 flex items-center justify-between border-b border-white/10">
@@ -312,7 +312,7 @@ export default async function ExecutiveOverviewPage() {
       <AiNarrativePanel />
 
       {/* KPI tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+      <div data-tour="kpi-tiles" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
         {tiles.map(({ label, value, sub, accent }) => (
           <div
             key={label}
@@ -332,7 +332,7 @@ export default async function ExecutiveOverviewPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ARR Trend */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
+        <div data-tour="arr-trend" className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">ARR Trend by Segment</h3>
           {trendData.length > 0 ? (
             <ArrTrendChart data={trendData} />

@@ -105,7 +105,7 @@ export default function AttributionPage() {
   return (
     <div className="space-y-6">
       {/* Model selector */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div data-tour="attribution-models" className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex flex-wrap gap-2 mb-3">
           {MODELS.map(({ id, label }) => (
             <button
@@ -371,7 +371,7 @@ export default function AttributionPage() {
       </div>
 
       {/* ── Source Funnel Conversion Rates ─────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div data-tour="funnel-conversion" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-700">Funnel Conversion Rates</h3>
@@ -445,7 +445,7 @@ export default function AttributionPage() {
       </div>
 
       {/* ── Company Size × Industry Win Rate Summary ──────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div data-tour="win-rate-cross-section" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-slate-700">Win Rate by Segment Combination</h3>
           <p className="text-xs text-slate-400 mt-0.5">Company size × industry cross-section · closed-won and closed-lost deals · min 5 decided</p>
