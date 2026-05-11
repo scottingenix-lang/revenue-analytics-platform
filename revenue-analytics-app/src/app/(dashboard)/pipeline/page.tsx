@@ -232,18 +232,30 @@ export default function PipelinePage() {
               const committedPct = Math.min((quarter.committed_arr / barTotal) * 100, 100 - closedPct)
               const pipelinePct  = Math.min((quarter.pipeline_arr  / barTotal) * 100, 100 - closedPct - committedPct)
               const gapPct       = Math.max(0, 100 - closedPct - committedPct - pipelinePct)
+              const monthQuota   = quarter.quota / 3
 
-              const monthQuota = quarter.quota / 3
+              const now         = new Date()
+              const qIdx2       = Math.floor(now.getMonth() / 3)
+              const qStartD     = new Date(now.getFullYear(), qIdx2 * 3, 1)
+              const qEndD       = new Date(now.getFullYear(), qIdx2 * 3 + 3, 0)
+              const totalDays   = Math.round((qEndD.getTime() - qStartD.getTime()) / 86400000) + 1
+              const elapsedDays = Math.min(totalDays, Math.round((now.getTime() - qStartD.getTime()) / 86400000) + 1)
+              const progressPct = Math.round((elapsedDays / totalDays) * 100)
 
               return (
                 <>
                   {/* ── Quarter overview bar ─────────────────── */}
                   <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-700">{quarter.label} Overview</span>
-                      <span className="text-xs text-slate-400">Quota: <span className="font-semibold text-slate-600">{fmtUSD(quarter.quota)}</span></span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-slate-700">{quarter.label} Overview</span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${quarter.gap > 0 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                          {quarter.gap > 0 ? `${fmtUSD(quarter.gap)} gap to quota` : '✓ On Track'}
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-400 shrink-0">Quota: <span className="font-semibold text-slate-600">{fmtUSD(quarter.quota)}</span></span>
                     </div>
-                    {/* Stacked bar */}
+                    {/* ARR stacked bar */}
                     <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
                       <div className="absolute inset-y-0 left-0 bg-indigo-600 rounded-l-full transition-all" style={{ width: `${closedPct}%` }} />
                       <div className="absolute inset-y-0 bg-indigo-400 transition-all" style={{ left: `${closedPct}%`, width: `${committedPct}%` }} />
@@ -255,12 +267,22 @@ export default function PipelinePage() {
                       <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-indigo-600 inline-block" /><span className="text-slate-500">Closed Won</span><span className="font-semibold text-slate-800 ml-1">{fmtUSD(quarter.closed_arr)}</span></span>
                       <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-indigo-400 inline-block" /><span className="text-slate-500">Committed</span><span className="font-semibold text-slate-800 ml-1">{fmtUSD(quarter.committed_arr)}</span></span>
                       <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-indigo-200 inline-block" /><span className="text-slate-500">Open Pipeline</span><span className="font-semibold text-slate-800 ml-1">{fmtUSD(quarter.pipeline_arr)}</span></span>
-                      <span className="flex items-center gap-1.5 ml-auto"><span className="w-3 h-3 rounded-sm bg-gray-200 inline-block" /><span className="text-slate-500">Gap to Quota</span><span className={`font-semibold ml-1 ${quarter.gap > 0 ? 'text-red-500' : 'text-emerald-600'}`}>{quarter.gap > 0 ? fmtUSD(quarter.gap) : 'On Track'}</span></span>
+                    </div>
+                    {/* Quarter progress bar */}
+                    <div className="space-y-1 pt-1 border-t border-slate-200">
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span className="font-medium text-slate-500">Quarter Progress</span>
+                        <span>Day {elapsedDays} of {totalDays} &nbsp;·&nbsp; {progressPct}% elapsed</span>
+                      </div>
+                      <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 bg-slate-400 rounded-full" style={{ width: `${progressPct}%` }} />
+                      </div>
                     </div>
                   </div>
 
                   {/* ── Month sub-bars ────────────────────────── */}
                   {quarter.months.map((m) => {
+
                     const mTotal      = Math.max(monthQuota, m.committed_arr + m.pipeline_arr)
                     const mCommPct    = mTotal > 0 ? Math.min((m.committed_arr / mTotal) * 100, 100) : 0
                     const mPipePct    = mTotal > 0 ? Math.min((m.pipeline_arr  / mTotal) * 100, 100 - mCommPct) : 0
