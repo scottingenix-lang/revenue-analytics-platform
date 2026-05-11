@@ -82,10 +82,10 @@ BEGIN
     NEW.lead_source_detail := v_contact.lead_source_detail;
   END IF;
 
-  -- c) Initialize stage tracking and computed age fields
-  NEW.last_stage_change_date  := CURRENT_DATE;
-  NEW.current_stage_age_days  := 0;
-  NEW.deal_age_days           := 0;
+  -- c) Initialize stage tracking fields only if not provided (preserves seed data)
+  NEW.last_stage_change_date := COALESCE(NEW.last_stage_change_date, CURRENT_DATE);
+  NEW.current_stage_age_days := COALESCE(NEW.current_stage_age_days, 0);
+  NEW.deal_age_days          := COALESCE(NEW.deal_age_days, 0);
 
   RETURN NEW;
 END;

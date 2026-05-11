@@ -9,7 +9,7 @@ import type {
   PipelineKpis, RepLeaderboardRow,
   StalledDealRow, FastPacingDealRow,
   QuarterForecast, DiscoveryOpsRow, DiscoveryBookingWeek,
-  RepAttainmentRow, GoalAttainmentRow, PipelineLagForecastRow,
+  RepAttainmentRow, GoalAttainmentRow,
 } from '@/lib/types'
 
 const STAGE_LABELS: Record<string, string> = {
@@ -29,7 +29,6 @@ type DiscoveryResponse = { ops: DiscoveryOpsRow[]; weeks: DiscoveryBookingWeek[]
 type LagForecastResponse = {
   repAttainment: RepAttainmentRow[]
   goalAttainment: GoalAttainmentRow[]
-  lagForecast: PipelineLagForecastRow[]
   currentQuarter: { year: number; quarter: number }
 }
 type SortField = 'attainment_pct' | 'closed_won_count' | 'avg_deal_arr' | 'win_rate_pct' | 'avg_age_days'
@@ -365,7 +364,7 @@ export default function PipelinePage() {
       {/* ── Panel B: Stage Velocity ────────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-          <h3 className="text-sm font-semibold text-slate-700">Panel B — Stage Velocity &amp; Conversion</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Stage Velocity &amp; Conversion</h3>
           <div className="flex flex-wrap gap-4">
             <FilterSelect label="Rep"      value={ownerId}   onChange={setOwnerId}   options={repOptions}      allLabel="All Reps"       />
             <FilterSelect label="Size"     value={segment}   onChange={setSegment}   options={segmentOptions}  allLabel="All Sizes"      />
@@ -400,7 +399,7 @@ export default function PipelinePage() {
         >
           <div>
             <h3 className="text-sm font-semibold text-slate-700">
-              Panel C — Stalled Deals
+              Stalled Deals
               {!loadingStalled && (
                 <span className="ml-2 text-xs font-normal text-slate-400">({stalled.length} deals)</span>
               )}
@@ -463,7 +462,7 @@ export default function PipelinePage() {
         >
           <div>
             <h3 className="text-sm font-semibold text-slate-700">
-              Panel D — Fast-Pacing Deals
+              Fast-Pacing Deals
               {!loadingFast && (
                 <span className="ml-2 text-xs font-normal text-slate-400">({fast.length} deals)</span>
               )}
@@ -526,7 +525,7 @@ export default function PipelinePage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-slate-700">Panel E — Discovery Meeting Operations</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Discovery Meeting Operations</h3>
             <p className="text-xs text-slate-400 mt-0.5">Forward booking · SDR ops metrics</p>
           </div>
           <div className="flex gap-2">
@@ -780,50 +779,6 @@ export default function PipelinePage() {
         )}
       </div>
 
-      {/* ── v2.1 Pipeline Lag Forecast ────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-slate-700">Pipeline Lag Forecast — Next 4 Quarters</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            From <code className="bg-gray-100 px-1 rounded">mv_pipeline_lag_forecast</code> ·
-            Projected wins = pipeline created N quarters ago × historical win rate
-          </p>
-        </div>
-        {loadingLag ? (
-          <div className="p-5 space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />)}
-          </div>
-        ) : (lagData?.lagForecast ?? []).length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-8">No pipeline lag forecast data.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Close Quarter</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Segment</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Lag (Qtrs)</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Source Pipeline</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Projected ARR</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Proj. Wins</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(lagData?.lagForecast ?? []).map((row, i) => (
-                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2.5 text-slate-700 font-medium">{row.close_quarter}</td>
-                  <td className="px-4 py-2.5 text-slate-500 text-xs">{row.segment}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{row.lag_quarters}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{fmtUSD(row.source_pipeline_arr)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-slate-500">{fmtPct(row.assumed_win_rate)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-slate-900">{fmtUSD(row.projected_arr)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{Math.round(row.projected_wins)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
 
     </div>
   )

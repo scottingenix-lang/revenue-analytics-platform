@@ -282,12 +282,16 @@ def generate_opportunities(
             disc_status = _weighted_choice(open_disc_dist)
         else:
             disc_status = _weighted_choice(DISCOVERY_STATUS_DIST)
-        disc_date = created + timedelta(days=random.randint(3, 21))
+        # For open deals with a pending meeting, the discovery date should be future;
+        # for held/past statuses it should be relative to creation.
+        if is_open and disc_status in ("Scheduled", "Rescheduling", "No Show - Rescheduling"):
+            disc_date = date.today() + timedelta(days=random.randint(1, 28))
+        else:
+            disc_date = created + timedelta(days=random.randint(3, 21))
         disc_held_date = disc_date if disc_status == "Held" else None
         reschedule_count = 0
         if disc_status in ("Rescheduling", "No Show - Rescheduling"):
             reschedule_count = random.randint(1, 3)
-            disc_date = disc_date + timedelta(days=reschedule_count * random.randint(5, 14))
 
         # Determine final stage
         if disc_status == "No Show":
@@ -403,6 +407,7 @@ def generate_opportunities(
             "activity_count_last_30":            random.randint(0, 15),
             "last_stage_change_date":            last_stage_date.isoformat(),
             "current_stage_age_days":            current_stage_age,
+            "deal_age_days":                     max(0, (date.today() - created).days),
             "ai_risk_band":                      None,
             "ai_risk_score":                     None,
             "ai_next_action":                    None,

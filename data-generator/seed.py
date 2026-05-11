@@ -31,6 +31,7 @@ from generators.opportunities   import generate_users, generate_opportunities
 from generators.subscriptions   import generate_subscriptions
 from generators.health_scores   import generate_health_scores
 from generators.spend           import generate_spend
+from generators.goals           import generate_goals
 from generators.constants       import RANDOM_SEED
 
 OUTPUT_DIR = Path(__file__).parent / "output"
@@ -60,15 +61,15 @@ def generate_all() -> dict[str, list[dict]]:
 
     t0 = time.time()
 
-    print("[1/8] Companies...")
+    print("[1/9] Companies...")
     companies = generate_companies()
     write_csv(companies, "mkt_companies.csv")
 
-    print("[2/8] Users (sales team)...")
+    print("[2/9] Users (sales team)...")
     users = generate_users()
     write_csv(users, "sls_users.csv")
 
-    print("[3/8] Contacts...")
+    print("[3/9] Contacts...")
     contacts, company_contacts = generate_contacts(companies)
     # Patch owner_id onto contacts from SDR pool
     import random
@@ -84,11 +85,11 @@ def generate_all() -> dict[str, list[dict]]:
     # Re-write companies now that hubspot_owner_id is set
     write_csv(companies, "mkt_companies.csv")
 
-    print("[4/8] Campaigns...")
+    print("[4/9] Campaigns...")
     campaigns = generate_campaigns()
     write_csv(campaigns, "mkt_campaigns.csv")
 
-    print("[5/8] Opportunities, contacts, history, activities...")
+    print("[5/9] Opportunities, contacts, history, activities...")
     opportunities, opp_contacts, opp_history, activities, post_deal_updates = \
         generate_opportunities(companies, contacts, company_contacts, users)
 
@@ -107,17 +108,17 @@ def generate_all() -> dict[str, list[dict]]:
     write_csv(opp_history,   "sls_opportunity_history.csv")
     write_csv(activities,    "sls_activities.csv")
 
-    print("[6/8] Touches & campaign members...")
+    print("[6/9] Touches & campaign members...")
     touches, campaign_members = generate_touches(contacts, campaigns, opportunities)
     write_csv(touches,          "mkt_touches.csv")
     write_csv(campaign_members, "mkt_campaign_members.csv")
 
-    print("[7/8] Subscriptions & ARR movements...")
+    print("[7/9] Subscriptions & ARR movements...")
     subscriptions, arr_movements = generate_subscriptions(companies, opportunities)
     write_csv(subscriptions, "sub_subscriptions.csv")
     write_csv(arr_movements, "sub_arr_movements.csv")
 
-    print("[8/8] Health scores, tickets, usage, spend, margin...")
+    print("[8/9] Health scores, tickets, usage, spend, margin...")
     health_scores, cs_tickets, prod_usage = generate_health_scores(companies, subscriptions)
     spend_rows, margin_rows = generate_spend()
 
@@ -126,6 +127,14 @@ def generate_all() -> dict[str, list[dict]]:
     write_csv(prod_usage,    "prod_usage_daily.csv")
     write_csv(spend_rows,    "fin_spend_monthly.csv")
     write_csv(margin_rows,   "fin_margin.csv")
+
+    print("[9/9] Revenue goals, quotas, campaign forecasts (v2.1)...")
+    revenue_goals, pipeline_source_goals, quotas, campaign_forecasts = \
+        generate_goals(users, campaigns)
+    write_csv(revenue_goals,          "fin_revenue_goals.csv")
+    write_csv(pipeline_source_goals,  "fin_pipeline_source_goals.csv")
+    write_csv(quotas,                 "sls_quotas.csv")
+    write_csv(campaign_forecasts,     "mkt_campaign_forecast.csv")
 
     # Update company contact/deal counts
     from collections import Counter
@@ -143,6 +152,8 @@ def generate_all() -> dict[str, list[dict]]:
         len(activities), len(subscriptions), len(arr_movements),
         len(health_scores), len(cs_tickets), len(prod_usage),
         len(spend_rows), len(margin_rows), len(users),
+        # v2.1
+        len(revenue_goals), len(pipeline_source_goals), len(quotas), len(campaign_forecasts),
     ])
     print(f"\n[OK] Generated {total_rows:,} total rows in {elapsed:.1f}s")
     print(f"  CSVs written to: {OUTPUT_DIR}\n")
@@ -156,6 +167,9 @@ def generate_all() -> dict[str, list[dict]]:
         "arr_movements": arr_movements, "health_scores": health_scores,
         "cs_tickets": cs_tickets, "prod_usage": prod_usage,
         "spend": spend_rows, "margin": margin_rows,
+        # v2.1
+        "revenue_goals": revenue_goals, "pipeline_source_goals": pipeline_source_goals,
+        "quotas": quotas, "campaign_forecasts": campaign_forecasts,
     }
 
 
@@ -180,6 +194,12 @@ COPY_ORDER = [
     ("prod_usage_daily.csv",            "prod_usage_daily"),
     ("fin_spend_monthly.csv",           "fin_spend_monthly"),
     ("fin_margin.csv",                  "fin_margin"),
+    # v2.1 — goals and quotas (no FK deps on each other except sls_quotas → sls_users
+    #         and mkt_campaign_forecast → mkt_campaigns, both already loaded above)
+    ("fin_revenue_goals.csv",           "fin_revenue_goals"),
+    ("fin_pipeline_source_goals.csv",   "fin_pipeline_source_goals"),
+    ("sls_quotas.csv",                  "sls_quotas"),
+    ("mkt_campaign_forecast.csv",       "mkt_campaign_forecast"),
 ]
 
 MATERIALIZED_VIEWS = [
@@ -197,6 +217,11 @@ MATERIALIZED_VIEWS = [
     "mv_stage_velocity_stats",
     "mv_overall_cycle_stats",
     "mv_discovery_meeting_ops",
+    # v2.1 — refresh in dependency order (mv_pipeline_lag_forecast reads mv_overall_cycle_stats)
+    "mv_source_conversion_rates",
+    "mv_attainment_by_period",
+    "mv_pipeline_lag_forecast",
+    "mv_rep_attainment",
 ]
 
 

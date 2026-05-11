@@ -407,7 +407,7 @@ export default function AttributionPage() {
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">3 → 4</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">4 → 5</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">5 → Won</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide border-l-2 border-gray-200">Win Rate</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Deal Count</th>
               </tr>
             </thead>
@@ -434,7 +434,7 @@ export default function AttributionPage() {
                     <td className={`px-4 py-3 text-right tabular-nums font-semibold ${stageColor(r.s3_to_s4)}`}>{r.s3_to_s4 > 0 ? `${r.s3_to_s4.toFixed(0)}%` : <span className="text-slate-300">—</span>}</td>
                     <td className={`px-4 py-3 text-right tabular-nums font-semibold ${stageColor(r.s4_to_s5)}`}>{r.s4_to_s5 > 0 ? `${r.s4_to_s5.toFixed(0)}%` : <span className="text-slate-300">—</span>}</td>
                     <td className={`px-4 py-3 text-right tabular-nums font-semibold ${stageColor(r.s5_to_s6)}`}>{r.s5_to_s6 > 0 ? `${r.s5_to_s6.toFixed(0)}%` : <span className="text-slate-300">—</span>}</td>
-                    <td className={`px-4 py-3 text-right tabular-nums font-semibold ${winRateColor(r.win_rate)}`}>{r.win_rate > 0 ? `${r.win_rate.toFixed(1)}%` : <span className="text-slate-300">—</span>}</td>
+                    <td className={`px-4 py-3 text-right tabular-nums font-semibold border-l-2 border-gray-200 ${winRateColor(r.win_rate)}`}>{r.win_rate > 0 ? `${r.win_rate.toFixed(1)}%` : <span className="text-slate-300">—</span>}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-slate-600">{r.deal_count > 0 ? r.deal_count : <span className="text-slate-300">—</span>}</td>
                   </tr>
                 )
