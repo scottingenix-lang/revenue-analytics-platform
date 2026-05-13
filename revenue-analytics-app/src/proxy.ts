@@ -40,17 +40,18 @@ export async function proxy(request: NextRequest) {
   const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p))
   const isLoginPage = pathname === '/login'
 
-  if (isProtected && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
+  // Auth gates disabled — re-enable to require login
+  // if (isProtected && !user) {
+  //   const url = request.nextUrl.clone()
+  //   url.pathname = '/login'
+  //   return NextResponse.redirect(url)
+  // }
 
-  if (isLoginPage && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/executive-overview'
-    return NextResponse.redirect(url)
-  }
+  // if (isLoginPage && user) {
+  //   const url = request.nextUrl.clone()
+  //   url.pathname = '/executive-overview'
+  //   return NextResponse.redirect(url)
+  // }
 
   return supabaseResponse
 }
