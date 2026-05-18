@@ -11,7 +11,7 @@ export default function LandingPage() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="max-w-2xl text-center space-y-6">
+        <div className="max-w-3xl text-center space-y-6">
           {/* Logo mark */}
           <div className="flex items-center justify-center gap-3 mb-8">
             <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center">
@@ -29,19 +29,22 @@ export default function LandingPage() {
                 />
               </svg>
             </div>
-            <span className="text-2xl font-semibold text-slate-900">Revenue Analytics Platform</span>
+            <span className="text-2xl font-semibold text-slate-900">Revenue Intelligence</span>
           </div>
 
           <h1 className="text-4xl font-bold text-slate-900 leading-tight">
-            AI-augmented revenue intelligence
+            The missing layer between
             <br />
-            <span className="text-indigo-600">for modern GTM teams</span>
+            <span className="text-indigo-600">CRM Data and Revenue Decisions</span>
           </h1>
 
-          <p className="text-lg text-slate-500">
-            Unified ARR tracking, attribution modeling, pipeline velocity, and retention analysis —
-            all in one place.
-          </p>
+          <div className="space-y-3 text-lg text-slate-500">
+            <p className="font-semibold text-slate-700">CRM and BI systems store activity. Revenue decisions require context.</p>
+            <p>
+              Revenue Intelligence connects pipeline, forecasting, retention, and unit economics
+              into a unified framework for understanding revenue performance and operational risk.
+            </p>
+          </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
@@ -55,7 +58,7 @@ export default function LandingPage() {
               Take a Tour
             </Link>
             <Link
-              href="/login"
+              href="/executive-overview"
               className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
             >
               Go to Platform

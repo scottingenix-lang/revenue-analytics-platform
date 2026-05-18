@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { fmtUSD, fmtPct, fmtMultiple, fmtMonths, fmtDays } from '@/lib/format'
-import AiNarrativePanel from '@/components/charts/AiNarrativePanel'
-import ArrTrendChart from '@/components/charts/ArrTrendChart'
+import AiPanel from '@/components/ai/AiPanel'
+import ArrSegmentBarChart from '@/components/charts/ArrSegmentBarChart'
 import ArrWaterfallChart from '@/components/charts/ArrWaterfallChart'
-import type { ArrDailyRow } from '@/lib/types'
 
 function attainmentColor(pacePct: number) {
   if (pacePct >= 90) return { bar: 'bg-emerald-500', text: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-700' }
@@ -90,7 +89,6 @@ export default async function ExecutiveOverviewPage() {
     quotaData,
     spendData,
     priorArrData,
-    arrTrendData,
     waterfallData,
     goalsData,
     qClosedData,
@@ -107,7 +105,6 @@ export default async function ExecutiveOverviewPage() {
     // T12 spend — same window as CAC & magic number
     supabase.from('fin_spend_monthly').select('amount').gte('fiscal_month', trailing12),
     supabase.from('mv_arr_daily').select('total_arr').lte('snapshot_date', trailing12).order('snapshot_date', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('mv_arr_daily').select('snapshot_date, total_arr, arr_smb, arr_midmarket, arr_enterprise').gte('snapshot_date', trailing12).order('snapshot_date', { ascending: true }),
     supabase.from('sub_arr_movements').select('movement_type, arr_delta').gte('effective_date', quarterStart(0)),
     // Scorecard: revenue goals for current year (all segments)
     supabase.from('fin_revenue_goals').select('period_quarter, new_business_arr_goal, expansion_arr_goal').eq('period_year', year).is('segment', null),
@@ -225,10 +222,6 @@ export default async function ExecutiveOverviewPage() {
     { label: 'Rule of 40',            value: rule_of_40.toFixed(0),      sub: `Growth ${arr_growth.toFixed(0)}% + GM ${gross_margin.toFixed(0)}%` },
   ]
 
-  // ── ARR trend chart data (weekly samples from mv_arr_daily) ──
-  const allTrend = (arrTrendData.data ?? []) as ArrDailyRow[]
-  const trendData = allTrend.filter((_, i) => i % 7 === 0 || i === allTrend.length - 1)
-
   // ── ARR waterfall this quarter ────────────────────────────────
   const qMvs = waterfallData.data ?? []
   const waterfall = [
@@ -308,8 +301,8 @@ export default async function ExecutiveOverviewPage() {
         </div>
       </div>
 
-      {/* AI Narrative */}
-      <AiNarrativePanel />
+      {/* AI Executive Summary */}
+      <AiPanel page="executive_overview" panelId="exec_summary" title="AI Executive Summary" />
 
       {/* KPI tiles */}
       <div data-tour="kpi-tiles" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
@@ -333,12 +326,8 @@ export default async function ExecutiveOverviewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ARR Trend */}
         <div data-tour="arr-trend" className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">ARR Trend by Segment</h3>
-          {trendData.length > 0 ? (
-            <ArrTrendChart data={trendData} />
-          ) : (
-            <p className="text-sm text-slate-400 text-center py-16">No trend data — refresh materialized views</p>
-          )}
+          <h3 className="text-sm font-semibold text-slate-700 mb-1">ARR Trend by Segment</h3>
+          <ArrSegmentBarChart />
         </div>
 
         {/* ARR Waterfall */}
