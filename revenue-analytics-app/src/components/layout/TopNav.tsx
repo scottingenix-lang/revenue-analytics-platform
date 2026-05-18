@@ -7,11 +7,20 @@ import { LogOut, ChevronDown } from 'lucide-react'
 
 const PAGE_TITLES: Record<string, string> = {
   '/executive-overview': 'Executive Overview',
-  '/attribution': 'Attribution',
-  '/pipeline': 'Pipeline & Sales Velocity',
-  '/retention': 'Retention & Expansion',
-  '/unit-economics': 'Unit Economics',
-  '/admin': 'Admin / Data Quality',
+  '/attribution':        'Attribution',
+  '/pipeline':           'Pipeline & Sales Velocity',
+  '/retention':          'Retention & Expansion',
+  '/unit-economics':     'Unit Economics',
+  '/admin':              'Admin / Data Quality',
+}
+
+const PAGE_SUBTITLES: Record<string, string> = {
+  '/executive-overview': 'A unified view of growth efficiency, forecasting health, pipeline quality, and operational risk across the revenue organization.',
+  '/attribution':        'Track how marketing channels, campaigns, and touches drive pipeline and closed revenue across the buyer journey.',
+  '/pipeline':           'Analyze deal flow, stage conversion, rep performance, and forecast accuracy across the active pipeline.',
+  '/retention':          'Monitor net and gross revenue retention, cohort health, and expansion ARR trends across the customer base.',
+  '/unit-economics':     'Evaluate the efficiency of revenue growth through CAC, payback period, LTV, and gross margin metrics.',
+  '/admin':              'Manage data integrations, monitor AI model activity, and review the metric formulas powering this platform.',
 }
 
 export default function TopNav() {
@@ -20,7 +29,8 @@ export default function TopNav() {
   const [email, setEmail] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const title = PAGE_TITLES[pathname] ?? 'Dashboard'
+  const title    = PAGE_TITLES[pathname]    ?? 'Dashboard'
+  const subtitle = PAGE_SUBTITLES[pathname] ?? null
 
   useEffect(() => {
     const supabase = createClient()
@@ -39,8 +49,11 @@ export default function TopNav() {
   const initials = email ? email[0].toUpperCase() : '?'
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
-      <h1 className="text-base font-semibold text-slate-800">{title}</h1>
+    <header className="bg-white border-b border-gray-200 flex items-center justify-between px-6 py-3 flex-shrink-0">
+      <div>
+        <h1 className="text-base font-semibold text-slate-800 leading-snug">{title}</h1>
+        {subtitle && <p className="text-sm text-purple-600 mt-0.5 whitespace-nowrap">{subtitle}</p>}
+      </div>
 
       {/* User menu */}
       <div className="relative">

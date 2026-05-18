@@ -2,6 +2,7 @@
 
 import { useState, useDeferredValue } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import AiPanel from '@/components/ai/AiPanel'
 import AttributionBarChart, { ATTRIBUTION_STAGES, type StageKey } from '@/components/charts/AttributionBarChart'
 import { fmtUSD, fmtPct } from '@/lib/format'
 import type { AttributionRow, ChannelHandoffRow, SourceConversionRow, CrossSectionRow, DealSearchResult, DealJourneyResponse } from '@/lib/types'
@@ -102,6 +103,82 @@ export default function AttributionPage() {
 
   return (
     <div className="space-y-6">
+      {/* AI Attribution Insight */}
+      <AiPanel page="attribution" panelId="attribution_insight" title="AI Attribution Insight" />
+
+      {/* ── Company Size × Industry Win Rate Summary ──────────── */}
+      <div data-tour="win-rate-cross-section" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-slate-700">Win Rate by Segment Combination</h3>
+          <p className="text-xs text-slate-400 mt-0.5">Company size × industry cross-section · closed-won and closed-lost deals · min 5 decided</p>
+        </div>
+        {loadingCrossSection ? (
+          <div className="p-5 space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            {/* Top 5 */}
+            <div>
+              <div className="px-5 py-3 bg-emerald-50 border-b border-emerald-100">
+                <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Top 5 Win Combinations</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Segment</th>
+                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide"># Wins</th>
+                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
+                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Days to Win</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg ARR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(crossSection?.top5 ?? []).map((r, i) => (
+                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-2.5 text-slate-700 font-medium">{r.industry} · {r.company_size}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.wins}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-emerald-600">{r.win_rate.toFixed(1)}%</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.avg_days_to_win}d</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{fmtUSD(r.avg_arr)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bottom 5 */}
+            <div>
+              <div className="px-5 py-3 bg-red-50 border-b border-red-100">
+                <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">Top 5 Losing Combinations</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Segment</th>
+                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide"># Wins</th>
+                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
+                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Days to Win</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg ARR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(crossSection?.bottom5 ?? []).map((r, i) => (
+                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-2.5 text-slate-700 font-medium">{r.industry} · {r.company_size}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.wins}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-red-500">{r.win_rate.toFixed(1)}%</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.avg_days_to_win > 0 ? `${r.avg_days_to_win}d` : '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{r.avg_arr > 0 ? fmtUSD(r.avg_arr) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Model selector */}
       <div data-tour="attribution-models" className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex flex-wrap gap-2 mb-3">
@@ -439,79 +516,6 @@ export default function AttributionPage() {
               })}
             </tbody>
           </table>
-        )}
-      </div>
-
-      {/* ── Company Size × Industry Win Rate Summary ──────────── */}
-      <div data-tour="win-rate-cross-section" className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-slate-700">Win Rate by Segment Combination</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Company size × industry cross-section · closed-won and closed-lost deals · min 5 decided</p>
-        </div>
-        {loadingCrossSection ? (
-          <div className="p-5 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-            {/* Top 5 */}
-            <div>
-              <div className="px-5 py-3 bg-emerald-50 border-b border-emerald-100">
-                <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Top 5 Win Combinations</span>
-              </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Segment</th>
-                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide"># Wins</th>
-                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
-                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Days to Win</th>
-                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg ARR</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(crossSection?.top5 ?? []).map((r, i) => (
-                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-2.5 text-slate-700 font-medium">{r.industry} · {r.company_size}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.wins}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-emerald-600">{r.win_rate.toFixed(1)}%</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.avg_days_to_win}d</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{fmtUSD(r.avg_arr)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Bottom 5 */}
-            <div>
-              <div className="px-5 py-3 bg-red-50 border-b border-red-100">
-                <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">Top 5 Losing Combinations</span>
-              </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Segment</th>
-                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide"># Wins</th>
-                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Win Rate</th>
-                    <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Days to Win</th>
-                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Avg ARR</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(crossSection?.bottom5 ?? []).map((r, i) => (
-                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-2.5 text-slate-700 font-medium">{r.industry} · {r.company_size}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.wins}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-red-500">{r.win_rate.toFixed(1)}%</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{r.avg_days_to_win > 0 ? `${r.avg_days_to_win}d` : '—'}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{r.avg_arr > 0 ? fmtUSD(r.avg_arr) : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         )}
       </div>
 
