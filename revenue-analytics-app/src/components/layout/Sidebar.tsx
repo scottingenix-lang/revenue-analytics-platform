@@ -11,6 +11,7 @@ import {
   DollarSign,
   ShieldCheck,
   LogOut,
+  Calculator,
 } from 'lucide-react'
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { label: 'Attribution', href: '/attribution', icon: GitBranch },
   { label: 'Retention & Expansion', href: '/retention', icon: Users },
   { label: 'Unit Economics', href: '/unit-economics', icon: DollarSign },
+  { label: 'Revenue Planning', href: '/calculator', icon: Calculator },
   { label: 'Admin / Data Quality', href: '/admin', icon: ShieldCheck },
 ]
 
