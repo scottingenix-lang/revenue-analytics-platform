@@ -86,12 +86,23 @@ function MetricTile({
 const DROPDOWN_CLS =
   'w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer'
 
+const DROPDOWN_BASE =
+  'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer bg-white text-slate-900 transition-colors'
+
 const INPUT_BASE =
   'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none transition-colors'
 
 const INPUT_NORMAL =
   INPUT_BASE +
   ' border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-400'
+
+const INPUT_FILLED =
+  INPUT_BASE +
+  ' border-slate-900 bg-white text-slate-900 focus:ring-2 focus:ring-indigo-400'
+
+function inputCls(val: string) {
+  return val.trim() !== '' ? INPUT_FILLED : INPUT_NORMAL
+}
 
 const INPUT_COMPUTED =
   INPUT_BASE +
@@ -105,7 +116,7 @@ export default function CalculatorPage() {
   const [valueToCalc, setValueToCalc] = useState<ValueToCalc>('quota')
   const [outputFrame, setOutputFrame] = useState<OutputFrame>('annually')
   const [startQ, setStartQ] = useState<number>(1) // Q1 default
-  const [salesCycle, setSalesCycle] = useState<number>(1) // ≤1 Quarter default
+  const [salesCycle, setSalesCycle] = useState<number>(0) // 0 = not selected
 
   // ── Input field state (raw strings) ────────────────────────────────────────
   const [goalCurrent, setGoalCurrent] = useState('')
@@ -248,7 +259,7 @@ export default function CalculatorPage() {
     setValueToCalc('quota')
     setOutputFrame('annually')
     setStartQ(1)
-    setSalesCycle(1)
+    setSalesCycle(0)
     setGoalCurrent('')
     setGoalNext('')
     setNumReps('')
@@ -423,8 +434,8 @@ export default function CalculatorPage() {
           )}
 
           {hasError && (
-            <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-              Cannot compute — check that win rate, attainment, rep count, and pipeline are all greater than zero.
+            <div className="mb-6 text-sm text-slate-900 italic">
+              Please enter values in all the blank, non-computed fields.
             </div>
           )}
 
@@ -444,7 +455,7 @@ export default function CalculatorPage() {
                 onFocus={() => setFocusedField('goalCurrent')}
                 onBlur={() => setFocusedField(null)}
                 onChange={e => handleNumInput(e.target.value, setGoalCurrent)}
-                className={INPUT_NORMAL}
+                className={inputCls(goalCurrent)}
                 placeholder={calcBasis === 'dollars' ? '$10,000,000' : '10000000'}
               />
             </div>
@@ -462,7 +473,7 @@ export default function CalculatorPage() {
                 onFocus={() => setFocusedField('goalNext')}
                 onBlur={() => setFocusedField(null)}
                 onChange={e => handleNumInput(e.target.value, setGoalNext)}
-                className={INPUT_NORMAL}
+                className={inputCls(goalNext)}
                 placeholder={calcBasis === 'dollars' ? '$13,000,000' : '13000000'}
               />
             </div>
@@ -483,7 +494,7 @@ export default function CalculatorPage() {
                 disabled={isComputed('reps')}
                 value={isComputed('reps') ? fmtReps(computedValue) : numReps}
                 onChange={e => handleNumInput(e.target.value, setNumReps)}
-                className={isComputed('reps') ? INPUT_COMPUTED : INPUT_NORMAL}
+                className={isComputed('reps') ? INPUT_COMPUTED : inputCls(numReps)}
                 placeholder="10"
               />
             </div>
@@ -507,7 +518,7 @@ export default function CalculatorPage() {
                 onFocus={() => setFocusedField('winRatePct')}
                 onBlur={() => setFocusedField(null)}
                 onChange={e => handleNumInput(e.target.value, setWinRatePct, { isPercent: true })}
-                className={isComputed('winrate') ? INPUT_COMPUTED : INPUT_NORMAL}
+                className={isComputed('winrate') ? INPUT_COMPUTED : inputCls(winRatePct)}
                 placeholder="25%"
               />
             </div>
@@ -520,8 +531,9 @@ export default function CalculatorPage() {
               <select
                 value={salesCycle}
                 onChange={e => setSalesCycle(Number(e.target.value))}
-                className={DROPDOWN_CLS}
+                className={DROPDOWN_BASE + (salesCycle > 0 ? ' border-slate-900' : ' border-slate-200')}
               >
+                <option value={0} disabled>— Select —</option>
                 {salesCycleOptions.map((label, i) => (
                   <option key={i} value={i + 1}>{label}</option>
                 ))}
@@ -541,7 +553,7 @@ export default function CalculatorPage() {
                 onFocus={() => setFocusedField('attainmentPct')}
                 onBlur={() => setFocusedField(null)}
                 onChange={e => handleNumInput(e.target.value, setAttainmentPct, { isPercent: true })}
-                className={INPUT_NORMAL}
+                className={inputCls(attainmentPct)}
                 placeholder="75%"
               />
             </div>
@@ -565,18 +577,18 @@ export default function CalculatorPage() {
                 disabled={isPipelineComputed}
                 value={
                   isPipelineComputed
-                    ? fmtDollarOrDeals(computedPipelineValue)
+                    ? fmtDollarOrDeals(computedPipelineValue * frameScale)
                     : (focusedField === 'pipeline' ? pipeline : fmtDollarOrDeals(num(pipeline) * frameScale))
                 }
                 onFocus={isPipelineComputed ? undefined : () => setFocusedField('pipeline')}
                 onBlur={isPipelineComputed ? undefined : () => setFocusedField(null)}
                 onChange={isPipelineComputed ? undefined : e => handleNumInput(e.target.value, setPipeline)}
-                className={isPipelineComputed ? INPUT_COMPUTED : INPUT_NORMAL}
+                className={isPipelineComputed ? INPUT_COMPUTED : inputCls(pipeline)}
                 placeholder={calcBasis === 'dollars' ? '$40,000,000' : '40000000'}
               />
-              {calcBasis === 'deals' && (
-                <p className="mt-1 text-xs text-slate-400">Open Deals</p>
-              )}
+              <p className="mt-1 text-xs text-slate-400">
+                {calcBasis === 'deals' ? 'Open Deals · ' : ''}{outputFrame === 'quarterly' ? 'Quarterly' : 'Annually'}
+              </p>
             </div>
 
             {/* Pipeline per Rep — always computed */}
@@ -594,6 +606,7 @@ export default function CalculatorPage() {
                 value={fmtDollarOrDeals(effectivePipeline / effectiveReps * frameScale)}
                 className={INPUT_COMPUTED}
               />
+              <p className="mt-1 text-xs text-slate-400">{outputFrame === 'quarterly' ? 'Quarterly' : 'Annually'}</p>
             </div>
 
             {/* Quota per Rep */}
@@ -617,12 +630,12 @@ export default function CalculatorPage() {
                 onFocus={() => setFocusedField('quotaPerRep')}
                 onBlur={() => setFocusedField(null)}
                 onChange={e => handleNumInput(e.target.value, setQuotaPerRep)}
-                className={isComputed('quota') ? INPUT_COMPUTED : INPUT_NORMAL}
+                className={isComputed('quota') ? INPUT_COMPUTED : inputCls(quotaPerRep)}
                 placeholder={calcBasis === 'dollars' ? '$1,333,333' : '1333333'}
               />
-              {calcBasis === 'deals' && (
-                <p className="mt-1 text-xs text-slate-400">{outputFrame === 'quarterly' ? 'wins/qtr' : 'wins/yr'}</p>
-              )}
+              <p className="mt-1 text-xs text-slate-400">
+                {calcBasis === 'deals' ? (outputFrame === 'quarterly' ? 'wins/qtr · ' : 'wins/yr · ') : ''}{outputFrame === 'quarterly' ? 'Quarterly' : 'Annually'}
+              </p>
             </div>
 
             {/* Avg Deal Size */}
@@ -638,7 +651,7 @@ export default function CalculatorPage() {
                 onFocus={() => setFocusedField('dealSize')}
                 onBlur={() => setFocusedField(null)}
                 onChange={e => handleNumInput(e.target.value, setDealSize)}
-                className={INPUT_NORMAL}
+                className={inputCls(dealSize)}
                 placeholder="$50,000"
               />
             </div>
@@ -708,7 +721,7 @@ export default function CalculatorPage() {
             />
             <MetricTile
               label="Avg Sales Cycle"
-              value={salesCycleOptions[salesCycle - 1]}
+              value={salesCycle > 0 ? salesCycleOptions[salesCycle - 1] : '—'}
             />
           </div>
 
