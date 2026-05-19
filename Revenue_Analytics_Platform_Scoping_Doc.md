@@ -98,6 +98,56 @@ Renamed and expanded from v1. Houses **all** unit-economics and channel-economic
 
 A persistent AI sidebar (Data Copilot) available on every dashboard, plus a dedicated AI agent monitoring page. See Section 6 for full agent specs.
 
+### 4.8 Revenue Planning Calculator
+
+A standalone, client-side planning tool accessible at `/calculator`. No authentication required, no Supabase dependency — fully self-contained and shareable as a direct link.
+
+**Purpose.** Helps GTM leaders align pipeline, quota, headcount, and win rate to a bookings goal before the quarter starts. All math is live and reactive — change any input and the output panel and table update instantly.
+
+**Calculator Settings (filter band).** Four dropdowns presented in an indigo header band above the input fields:
+
+| Filter | Options | Default |
+|---|---|---|
+| Calculation Basis | Dollar Amount / Deal Count | Dollar Amount |
+| Value to Calculate | Quota per Rep / Number of Reps / Win Rate | Quota per Rep |
+| Timeframe Output | Annually / Quarterly | Annually |
+| Starting Quarter | Q1 / Q2 / Q3 / Q4 | Q1 |
+
+**Input fields** (9 fields in a 3-column grid):
+
+| Field | Behavior |
+|---|---|
+| Annual Bookings Goal — Current Year | User-entered |
+| Annual Bookings Goal — Next Year | User-entered |
+| Number of Reps | User-entered; computed when "Number of Reps" selected |
+| Avg Win Rate % | User-entered; computed when "Win Rate" selected |
+| Avg Quota Attainment % | User-entered |
+| Pipeline Required | **Always computed** (Goal ÷ Win Rate). Exception: when "Win Rate" is the computed field, this becomes editable and relabeled "Current Open Pipeline Total" |
+| Pipeline per Rep | **Always computed** (Pipeline Required ÷ Number of Reps). Never editable. |
+| Quota per Rep | User-entered; computed when "Quota per Rep" selected |
+| Avg Deal Size | User-entered (always dollars; drives Deal Count mode conversions) |
+
+Plus a dropdown for **Avg Sales Cycle Length** (≤1 / ≤2 / ≤3 / ≤4 Quarters) which drives the quarter-shift table.
+
+**Computed field behavior.** The selected "Value to Calculate" field displays a teal computed result and is disabled. All other fields remain editable. Switching "Value to Calculate" preserves all entered values — the new computed field recalculates from existing inputs immediately. The Pipeline Required field uses a permanently computed (teal) style unless Win Rate is selected.
+
+**Calculation Basis — Deal Count mode.** When Deal Count is selected, the following values convert from dollars to deal counts (÷ Avg Deal Size) for display: Pipeline Required / Current Open Pipeline Total, Pipeline per Rep, Quota per Rep, and all three in the 4-quarter table. Sub-labels update: "Open Deals" for Pipeline, "wins/yr" or "wins/qtr" for Quota per Rep.
+
+**Timeframe Output — Quarterly mode.** When Quarterly is selected, Pipeline Required, Pipeline per Rep, and Quota per Rep display ÷ 4. The "Computed" callout label shifts to "Quarterly." The wins/yr sub-label changes to "wins/qtr."
+
+**Output panel** (dark indigo-to-slate gradient). Two sections:
+
+- **Revenue Planning Results** — 8 metric tiles: Annual Bookings Goal, Pipeline, Number of Reps, Quota per Rep, Avg Win Rate, Avg Quota Attainment, Avg Deal Size, Avg Sales Cycle.
+- **Pipeline to Bookings Goal Adjustment** — 4-quarter table that shifts pipeline generation requirements backwards by the sales cycle length so each booking quarter shows which earlier quarter's pipeline must be created. Sky cluster (Pipeline, Win Rate) and Violet cluster (Bookings, Reps, Quota per Rep, Attainment) provide visual grouping. Values respect Calculation Basis and Timeframe Output settings.
+
+**Page behavior.** All fields start blank on every page load/refresh. Filters reset to defaults (Dollar Amount, Quota per Rep, Annually, Q1).
+
+**Action buttons** (bottom-right of input panel):
+- **Reset All** — clears all fields and resets all filters to defaults.
+- **Download as PDF** — captures the output panel (metric tiles + table) as a pixel-accurate PDF matching the on-screen visual design.
+
+**Tech.** `'use client'` Next.js page component. Zero server calls. `useMemo` for reactive table columns and computed value. `html-to-image` + `jsPDF` for PDF export (dynamic-imported; avoids bundle bloat). Dollar fields use focus/blur formatting pattern (`$1,234,567` when blurred, raw number when focused).
+
 ### 4.7 Admin / Data-Quality Console
 
 A page for the MarOps administrator: data freshness indicators, simulated daily HubSpot sync log, lead-routing rule editor, AI agent run history with cost/latency, and a HubSpot field-mapping inspector that flags fields with low fill rate or stale data. Specific data-quality checks include:
@@ -479,7 +529,7 @@ Calls, emails, meetings. (opportunity_id, contact_id, type, occurred_at, owner_i
 
 ## 8. Tech Architecture
 
-**Frontend.** Next.js 14 with App Router, TypeScript, Tailwind CSS, shadcn/ui components, Recharts for charting, React Query for data fetching. Deployed to Vercel.
+**Frontend.** Next.js 16.2.4 with App Router (Turbopack), TypeScript, Tailwind CSS v4, shadcn/ui components, Recharts for charting, TanStack Query v5 for data fetching. Deployed to Vercel.
 
 **Auth.** Single Supabase Auth login. Full access. **No persona-based routing in v1** — personas inform default views and visual emphasis only. RLS policies stub multi-tenant readiness without enforcing it.
 
