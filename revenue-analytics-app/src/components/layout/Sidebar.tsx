@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   LogOut,
   Calculator,
+  ExternalLink,
 } from 'lucide-react'
 
 const navItems = [
@@ -20,7 +21,7 @@ const navItems = [
   { label: 'Attribution', href: '/attribution', icon: GitBranch },
   { label: 'Retention & Expansion', href: '/retention', icon: Users },
   { label: 'Unit Economics', href: '/unit-economics', icon: DollarSign },
-  { label: 'Revenue Planning', href: '/calculator', icon: Calculator },
+  { label: 'Revenue Planning', href: '/calculator', icon: Calculator, external: true },
   { label: 'Admin / Data Quality', href: '/admin', icon: ShieldCheck },
 ]
 
@@ -61,12 +62,13 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-0.5">
-        {navItems.map(({ label, href, icon: Icon }) => {
+        {navItems.map(({ label, href, icon: Icon, external }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
               key={href}
               href={href}
+              {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors group ${
                 active
                   ? 'bg-indigo-600/20 text-indigo-300 border-l-2 border-indigo-500'
@@ -74,7 +76,8 @@ export default function Sidebar() {
               }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{label}</span>
+              <span className="flex-1">{label}</span>
+              {external && <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-60" />}
             </Link>
           )
         })}
