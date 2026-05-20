@@ -231,6 +231,7 @@ export default function CalculatorPage() {
         tableReps,
         tableQuotaPerRep,
         attainmentPct: att * 100,
+        isNextYear,
       }
     })
   }, [startQ, salesCycle, g, gNext, wr, pipe, att, reps, quota, valueToCalc, isPipelineComputed])
@@ -269,6 +270,70 @@ export default function CalculatorPage() {
     setDealSize('')
     setQuotaPerRep('')
     setFocusedField(null)
+  }
+
+  // ── GTM Insight ────────────────────────────────────────────────────────────
+  type InsightStatus = 'healthy' | 'warning' | 'flag'
+  type InsightResult = {
+    insights: Array<{ label: string; finding: string; status: InsightStatus }>
+    verdict: string
+  }
+
+  const [insight, setInsight] = useState<InsightResult | null>(null)
+  const [insightLoading, setInsightLoading] = useState(false)
+  const [insightError, setInsightError] = useState<string | null>(null)
+
+  async function handleGenerateInsight() {
+    setInsightLoading(true)
+    setInsightError(null)
+
+    const annualPipeline = effectivePipeline
+    const annualPipelinePerRep = effectiveReps > 0 ? annualPipeline / effectiveReps : 0
+    const coverageRatio = effectiveWinRatePct > 0 ? 100 / effectiveWinRatePct : 0
+    const yoyGrowthPct = g > 0 ? ((gNext - g) / g) * 100 : 0
+    const dealsPerRepPerYear = ds > 0 ? effectiveAnnualQuota / ds : 0
+    const motionType = ds < 25000 ? 'SMB' : ds <= 100000 ? 'Mid-Market' : 'Enterprise'
+
+    const payload = {
+      goalCurrent: g,
+      goalNext: gNext,
+      numReps: effectiveReps,
+      winRatePct: effectiveWinRatePct,
+      attainmentPct: att * 100,
+      dealSize: ds,
+      salesCycle,
+      salesCycleLabel: salesCycle > 0 ? salesCycleOptions[salesCycle - 1] : 'Not selected',
+      quotaPerRep: effectiveAnnualQuota,
+      pipelineRequired: annualPipeline,
+      pipelinePerRep: annualPipelinePerRep,
+      coverageRatio,
+      yoyGrowthPct,
+      dealsPerRepPerYear,
+      motionType,
+      valueToCalc,
+      tableColumns: tableColumns.map(col => ({
+        bookingQuarter: col.colLabel,
+        pipelineQuarter: col.pipeLabel,
+        isNextYear: col.isNextYear,
+        quarterlyBookings: col.quarterlyBookings,
+        quarterlyPipeline: col.quarterlyPipeline,
+      })),
+    }
+
+    try {
+      const res = await fetch('/api/ai/calculator-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('API error')
+      const data: InsightResult = await res.json()
+      setInsight(data)
+    } catch {
+      setInsightError('Failed to generate insight. Check that ANTHROPIC_API_KEY is configured and try again.')
+    } finally {
+      setInsightLoading(false)
+    }
   }
 
   // ── Input helpers ──────────────────────────────────────────────────────────
@@ -896,6 +961,88 @@ export default function CalculatorPage() {
               Linear / equal quarterly splits · V1
             </div>
           </div>
+        </div>
+
+        {/* ── GTM Plan Intelligence ─────────────────────────────────────────── */}
+        <div className="bg-slate-900 rounded-2xl p-6 shadow-xl">
+
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-white">GTM Plan Intelligence</h2>
+              <div className="mt-2 h-px bg-indigo-300" />
+              <p className="mt-3 text-sm text-slate-400">
+                AI-powered analysis of your revenue plan against B2B benchmarks. Independent of platform data — based solely on values entered above.
+              </p>
+            </div>
+          </div>
+
+          {/* Generate button */}
+          {!insightLoading && (
+            <button
+              onClick={handleGenerateInsight}
+              disabled={hasError}
+              className="mb-6 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
+            >
+              {insight ? 'Regenerate Insight' : 'Generate GTM Plan Insight'}
+            </button>
+          )}
+
+          {/* Loading */}
+          {insightLoading && (
+            <div className="mb-6 flex items-center gap-3 text-slate-300 text-sm">
+              <svg className="animate-spin h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Analyzing your plan against B2B benchmarks…
+            </div>
+          )}
+
+          {/* Error */}
+          {insightError && (
+            <p className="mb-6 text-sm text-red-400">{insightError}</p>
+          )}
+
+          {/* Results */}
+          {insight && !insightLoading && (
+            <div className="space-y-6">
+
+              {/* 8 insight cards — 2-col grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {insight.insights.map((item, i) => {
+                  const statusStyles = {
+                    healthy: { bar: 'bg-emerald-500', pill: 'bg-emerald-500/20 text-emerald-300', pillText: 'Healthy' },
+                    warning: { bar: 'bg-amber-400',  pill: 'bg-amber-400/20  text-amber-300',  pillText: 'Watch'   },
+                    flag:    { bar: 'bg-red-500',    pill: 'bg-red-500/20    text-red-300',    pillText: 'Flag'    },
+                  }[item.status]
+
+                  return (
+                    <div key={i} className="bg-slate-800 rounded-xl p-4 flex gap-3">
+                      <div className={`w-1 rounded-full flex-shrink-0 ${statusStyles.bar}`} />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <span className="text-sm font-semibold text-white">{item.label}</span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusStyles.pill}`}>
+                            {statusStyles.pillText}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-300 leading-relaxed">{item.finding}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Verdict */}
+              <div className="bg-indigo-950 border border-indigo-700/50 rounded-xl p-5">
+                <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-2">Overall Verdict</p>
+                <p className="text-sm text-white leading-relaxed">{insight.verdict}</p>
+              </div>
+
+            </div>
+          )}
+
         </div>
 
         {/* Footer */}
